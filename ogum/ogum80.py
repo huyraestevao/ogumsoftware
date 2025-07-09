@@ -43,25 +43,6 @@ from scipy.stats import linregress
 # Exige scipy>=1.6 para a localização de cumtrapz em .integrate
 try:
     from scipy.integrate import cumtrapz
-except Exception:  # pragma: no cover - fallback for environments without SciPy
-    import numpy as np
-
-    def cumtrapz(y, x=None, initial=0):
-        y = np.asarray(y)
-        if x is None:
-            x = np.arange(len(y))
-        else:
-            x = np.asarray(x)
-        res = [initial]
-        for i in range(1, len(y)):
-            trap = (y[i - 1] + y[i]) * (x[i] - x[i - 1]) / 2.0
-            res.append(res[-1] + trap)
-        return np.array(res)
-
-import sys
-import ogum.utils as core
-sys.modules['ogum.core'] = core
-sys.modules['core'] = core
 
 # ==============================================================================
 # Constantes Globais
@@ -1917,9 +1898,6 @@ class Modulo5_4_1Comparisons:
                 display(self.results_df.style.format({'Melhor_Ea_kJ_mol': '{:.2f}', 'Erro_Minimo': '{:.6g}'}))
 
                 display(HTML("<h4>Detalhamento do Erro vs. Ea</h4>"))
-                # A linha abaixo foi truncada no notebook original e foi
-                # comentada para manter a compatibilidade durante a importação
-                # display(self.comparison_details_df.style.format({'Ea
 
 # modulo5_4_2_Ref.py
 
