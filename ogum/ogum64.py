@@ -365,6 +365,14 @@ class Modulo2Importacao:
 # =================================================================================
 
     def _on_confirm_mapping(self, idx):
+        """Create and validate column mappings for a given test.
+
+        Args:
+            idx (int): Index of the test being mapped.
+
+        Returns:
+            Callable: Callback used by the confirm button.
+        """
         def callback(b):
             w = self.file_uploads[idx]
             out_local = w["out_local"]
@@ -989,6 +997,7 @@ proceed_button = widgets.Button(description="Realizar Ação", button_style='suc
 out = widgets.Output()
 
 def on_proceed_clicked(b):
+    """Handle the final method selection and hide the chooser UI."""
     with out:
         clear_output()
         choice = method_radio.value
