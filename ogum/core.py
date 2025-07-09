@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Utilities shared across Ogum modules."""
+
 from __future__ import annotations
 
 import base64
@@ -13,10 +14,12 @@ from .utils import normalize_columns
 
 import numpy as np
 import pandas as pd
+
 try:
     from IPython.display import HTML, display
     import ipywidgets as widgets
 except Exception:  # pragma: no cover - optional dependency
+
     class _Dummy:
         def __getattr__(self, name):
             raise RuntimeError("ipywidgets is required for GUI functions")
@@ -29,16 +32,20 @@ except Exception:  # pragma: no cover - optional dependency
     def HTML(text):  # type: ignore
         return text
 
+
 R = 8.314  # Constante universal dos gases (J/mol.K)
+
 
 @dataclass
 class SinteringDataRecord:
     """Estrutura simples para armazenar dados de sinterização."""
+
     ensaio_id: int
     Ea: float
     tipo_dado_y: str
     df: pd.DataFrame
     metadata: dict = field(default_factory=dict)
+
 
 class DataHistory:
     """Armazena versões de DataFrames para permitir desfazer operações."""
@@ -88,9 +95,11 @@ class DataHistory:
         """
         return list(self.history)
 
+
 # ---------------------------------------------------------------------------
 # Interface helper functions
 # ---------------------------------------------------------------------------
+
 
 def add_suffix_once(col: str, suffix: str) -> str:
     """Return ``col`` with ``suffix`` appended only once."""
@@ -120,20 +129,7 @@ def exibir_erro(msg: str) -> None:
     display(HTML(f"<p style='color:red; font-weight:bold;'>ERRO: {msg}</p>"))
 
 
-def criar_caixa_colapsavel(
-    titulo: str, conteudo: widgets.Widget, aberto: bool = False
-) -> widgets.Accordion:
-    """Return an accordion widget with optional collapsed state.
 
-    Args:
-        titulo (str): Title shown on the accordion tab.
-        conteudo (widgets.Widget): Widget displayed inside the accordion.
-        aberto (bool, optional): Whether the accordion starts opened.
-            Defaults to ``False``.
-
-    Returns:
-        widgets.Accordion: Configured accordion widget.
-    """
     acc = widgets.Accordion(children=[conteudo])
     acc.set_title(0, titulo)
     if not aberto:
@@ -156,9 +152,11 @@ def gerar_link_download(df: pd.DataFrame, nome_arquivo: str = "dados.xlsx") -> H
         f'target="_blank">Clique aqui para baixar: {final_name}</a>'
     )
 
+
 # ---------------------------------------------------------------------------
 # Mathematical models
 # ---------------------------------------------------------------------------
+
 
 def boltzmann_sigmoid(x, A1, A2, x0, dx):
     """Compute a Boltzmann sigmoidal curve.
@@ -195,6 +193,7 @@ def generalized_logistic_stable(x, A1, A2, x0, b, c):
     log_1_plus_exp_z = np.where(z > 30, z, np.log1p(np.exp(z)))
     denominator = np.exp(c * log_1_plus_exp_z)
     return A2 + (A1 - A2) / (denominator + 1e-12)
+
 
 __all__ = [
     "R",
