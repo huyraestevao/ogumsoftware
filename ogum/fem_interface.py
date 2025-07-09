@@ -1,3 +1,5 @@
+"""Stub interface for optional FEniCSx integration."""
+
 from typing import Any
 
 
@@ -10,4 +12,4 @@ def create_unit_mesh(mesh_size: float) -> Any:
     Returns:
         A mesh object from FEniCSx.
     """
-
+    raise ModuleNotFoundError("fenicsx not installed")
