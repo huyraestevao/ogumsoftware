@@ -1,4 +1,5 @@
 # Ogum Sintering – versão clean 🚀
+[![CI](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml/badge.svg)](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml)
 
 Este repositório contém quatro experimentos (64, 72, 80 e FZEA) em formato
 Jupyter (`notebooks/`) e seus correspondentes módulos Python (`ogum/`).
