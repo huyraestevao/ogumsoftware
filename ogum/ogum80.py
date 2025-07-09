@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 import ipywidgets as widgets
 from IPython.display import display, HTML
+from ogum.utils import orlandini_araujo_filter
 
 # Funções do SciPy
 from scipy.signal import savgol_filter
@@ -43,6 +44,19 @@ from scipy.stats import linregress
 # Exige scipy>=1.6 para a localização de cumtrapz em .integrate
 try:
     from scipy.integrate import cumtrapz
+except ImportError:
+    # Implementação alternativa de cumtrapz caso não esteja disponível
+    def cumtrapz(y, x=None, initial=0):
+        y = np.asarray(y)
+        if x is None:
+            x = np.arange(len(y))
+        else:
+            x = np.asarray(x)
+        res = [initial]
+        for i in range(1, len(y)):
+            trap = (y[i - 1] + y[i]) * (x[i] - x[i - 1]) / 2.0
+            res.append(res[-1] + trap)
+        return np.array(res)
 
 # ==============================================================================
 # Constantes Globais

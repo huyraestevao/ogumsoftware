@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 from typing import Dict, Iterable
+
+import numpy as np
 import pandas as pd
+import numpy as np
 
 
 def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd.DataFrame:
@@ -25,4 +28,11 @@ def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd
                 break
     return df.rename(columns=rename_dict)
 
-__all__ = ["normalize_columns"]
+
+def orlandini_araujo_filter(df: pd.DataFrame, bin_size: int = 10) -> pd.DataFrame:
+
+        )
+
+    dfc = df.copy()
+    dfc["bin"] = np.floor(dfc[time_col] / bin_size).astype(int)
+
