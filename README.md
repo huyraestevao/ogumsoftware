@@ -17,3 +17,18 @@ de utilidades comuns localizadas em `ogum/utils.py`. Esse módulo concentra
 funções auxiliares simples, como `normalize_columns`, utilizadas por diferentes
 experimentos. Manter esse arquivo presente permite que os scripts exportados
 funcionem sem ajustes adicionais e compartilhem a mesma base de utilidades.
+
+## Estilo & Lint
+O projeto utiliza o [Ruff](https://docs.astral.sh/ruff/) tanto para lint quanto
+para formatação de código, substituindo o Black tradicional. Para checar se o
+código segue as regras configuradas, execute:
+
+```bash
+ruff check .
+```
+
+Já a formatação pode ser aplicada com o Black embutido no Ruff:
+
+```bash
+ruff format .
+```
