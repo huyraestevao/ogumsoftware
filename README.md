@@ -24,14 +24,26 @@ de Skorohod-Olevsky. Instancie-o com os parâmetros do material e utilize
 
 ## Solver SOVS
 
+O solver integra a equação
+
+``dx/dt = A * exp(-Ea/(R T)) * (1 - x) * x**n``
+
+onde ``R`` é a constante dos gases ideais. Um uso típico é:
+
 ```python
 import numpy as np
+import matplotlib.pyplot as plt
 from ogum.sovs import SOVSSolver
 
-solver = SOVSSolver(Ea=3.1e5, A=1e6)
+solver = SOVSSolver(Ea=3.1e5, A=1e6, n=1.5)
 t = np.linspace(0, 3600, 50)
 T = np.full_like(t, 1373)
 x = solver.solve(t, T)
+
+plt.plot(t, x)
+plt.xlabel("t (s)")
+plt.ylabel("x")
+plt.show()
 ```
 
 ## Estilo & Lint

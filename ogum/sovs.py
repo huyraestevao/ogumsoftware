@@ -30,8 +30,10 @@ class SOVSSolver:
             R: Universal gas constant.
         """
 
+
         self.Ea = Ea
         self.A = A
+        self.n = n
         self.x0 = x0
         self.dx = dx
         self.n = n
@@ -40,33 +42,7 @@ class SOVSSolver:
     def _ode(self, t: float, x: float, T: float) -> float:
         """Return ``dx/dt`` for the SOVS model.
 
-        Args:
-            t: Current time (unused).
-            x: Relative density fraction.
-            T: Temperature in Kelvin.
 
-        Returns:
-            float: Time derivative ``dx/dt``.
-        """
-
-        k = self.A * np.exp(-self.Ea / (self.R * T))
-        return k * (1 - x) * x ** self.n
-
-    def solve(self, t: np.ndarray, T: np.ndarray) -> np.ndarray:
-        """Solve the SOVS ODE for a given temperature profile.
-
-        Args:
-            t: 1-D array of time points.
-            T: Temperature values sampled at ``t``.
-
-        Returns:
-            np.ndarray: Relative density fraction ``x`` evaluated at ``t``.
-        """
-
-        sol = solve_ivp(
-            fun=lambda tt, xx: self._ode(tt, xx, np.interp(tt, t, T)),
-            t_span=(t[0], t[-1]),
-            y0=[self.x0],
             t_eval=t,
         )
         return sol.y[0]
