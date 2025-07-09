@@ -4,3 +4,4 @@ pandas
 matplotlib
 pytest
 openpyxl
+# Optional: fenicsx-dolfinx for FEM simulations

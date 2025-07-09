@@ -60,3 +60,6 @@ Já a formatação pode ser aplicada com o Black embutido no Ruff:
 ```bash
 ruff format .
 ```
+
+## Stub FEM
+O arquivo `ogum/fem_interface.py` define a função `create_unit_mesh`, que apenas importa o construtor de malha do FEniCSx. Essa implementação é provisória e servirá de base para integrações futuras com um solver de Elementos Finitos.
