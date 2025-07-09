@@ -45,6 +45,7 @@ from scipy.integrate import cumulative_trapezoid as cumtrapz
 
 import sys
 import ogum.utils as core
+from ogum.utils import SinteringDataRecord
 sys.modules['ogum.core'] = core
 sys.modules['core'] = core
 
@@ -513,7 +514,7 @@ class Modulo3Recorte:
                 exibir_mensagem("Nenhum filtro aplicado."); return
 
             if method == 'orlandini':
-                df_filtered = orlandini_araujo_filter(df_clean, bin_size=bin_size)
+                df_filtered = core.orlandini_araujo_filter(df_clean, bin_size=bin_size)
                 exibir_mensagem(f"Filtro Orlandini-Araujo aplicado (bin={bin_size}s).")
 
             elif method == 'savgol':
@@ -1860,11 +1861,11 @@ from typing import List
 from collections import defaultdict
 
 # Importações necessárias do Módulo 1
-from modulo1_interface import (
+from ogum.utils import (
     SinteringDataRecord,
     exibir_mensagem,
     exibir_erro,
-    boltzmann_sigmoid
+    boltzmann_sigmoid,
 )
 
 class Modulo5_4_2Ref:
@@ -2026,7 +2027,7 @@ from scipy.stats import linregress
 import matplotlib.pyplot as plt
 from typing import List
 
-from modulo1_interface import SinteringDataRecord, exibir_mensagem, exibir_erro
+from ogum.utils import SinteringDataRecord, exibir_mensagem, exibir_erro
 
 class Modulo5_4_3BlaineLinear:
     """
@@ -2389,52 +2390,12 @@ from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
 
 # Importações de utilitários do Módulo 1
-from modulo1_interface import exibir_mensagem, exibir_erro, gerar_link_download
-
-
-def _calculate_derivatives_robust(df: pd.DataFrame, time_col: str, temp_col: str, dens_col: str):
-    """
-    Calcula derivadas de T e p em relação ao tempo e à temperatura,
-    aplicando filtro Savitzky-Golay para suavização prévia.
-    Retorna interpoladores de T(dens), dT/dt(dens) e dp/dT(dens).
-    """
-    # Ordena e copia
-    df_sorted = df.sort_values(time_col).reset_index(drop=True)
-    n_pts = len(df_sorted)
-    if n_pts < 5:
-        raise ValueError("Dados insuficientes (<5 pontos) para cálculo robusto.")
-
-    # Determina janela ímpar para filtro
-    max_win = 11
-    win = min(max_win, n_pts if n_pts % 2 == 1 else n_pts - 1)
-    window_length = win if win >= 5 else (5 if n_pts >= 5 else n_pts)
-    if window_length >= 5:
-        y_vals = savgol_filter(df_sorted[dens_col].values, window_length, 2)
-        T_vals = savgol_filter(df_sorted[temp_col].values + 273.15, window_length, 2)
-    else:
-        y_vals = df_sorted[dens_col].values
-        T_vals = df_sorted[temp_col].values + 273.15
-
-    # Derivadas
-    dTdt = np.gradient(T_vals, df_sorted[time_col].values)
-    dpdT = np.gradient(y_vals, T_vals)
-
-    # Prepara para interpolação: garante densidade estritamente crescente
-    interp_df = pd.DataFrame({
-        'dens': y_vals,
-        'T': T_vals,
-        'dTdt': dTdt,
-        'dpdT': dpdT
-    }).sort_values('dens').drop_duplicates('dens')
-
-    if len(interp_df) < 2:
-        raise ValueError("Dados insuficientes após filtragem para interpolação.")
-
-    f_T = interp1d(interp_df['dens'], interp_df['T'], kind='linear', bounds_error=False, fill_value='extrapolate')
-    f_dTdt = interp1d(interp_df['dens'], interp_df['dTdt'], kind='linear', bounds_error=False, fill_value='extrapolate')
-    f_dpdT = interp1d(interp_df['dens'], interp_df['dpdT'], kind='linear', bounds_error=False, fill_value='extrapolate')
-
-    return f_T, f_dTdt, f_dpdT
+from ogum.utils import (
+    exibir_mensagem,
+    exibir_erro,
+    gerar_link_download,
+    calculate_derivatives_robust,
+)
 
 
 class Modulo6_0_Arrhenius:
@@ -2503,7 +2464,7 @@ class Modulo6_0_Arrhenius:
             )
 
             try:
-                f_T, f_dTdt, f_dpdT = _calculate_derivatives_robust(
+                f_T, f_dTdt, f_dpdT = calculate_derivatives_robust(
                     df_clean, time_col, temp_col, dens_col
                 )
             except Exception as e:
@@ -2575,7 +2536,7 @@ from scipy.stats import linregress
 from collections import defaultdict
 
 # Utilitários do Módulo 1
-from modulo1_interface import exibir_mensagem, exibir_erro, gerar_link_download, R
+from ogum.utils import exibir_mensagem, exibir_erro, gerar_link_download
 
 class Modulo6_1ArrheniusDisplay:
     """
