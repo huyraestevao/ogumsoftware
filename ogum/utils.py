@@ -3,6 +3,7 @@ from __future__ import annotations
 
 
 
+
 def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd.DataFrame:
     """Return a DataFrame with columns renamed based on a mapping.
 
@@ -29,3 +30,4 @@ def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd
 
     dfc = df.copy()
     dfc["bin"] = np.floor(dfc[time_col] / bin_size).astype(int)
+
