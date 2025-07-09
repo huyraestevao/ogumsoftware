@@ -58,6 +58,11 @@ except Exception:  # pragma: no cover - fallback for environments without SciPy
             res.append(res[-1] + trap)
         return np.array(res)
 
+import sys
+import ogum.utils as core
+sys.modules['ogum.core'] = core
+sys.modules['core'] = core
+
 # ==============================================================================
 # Constantes Globais
 # ==============================================================================
@@ -67,115 +72,6 @@ R = 8.314  # Constante universal dos gases (J/mol.K)
 # Estruturas de Dados Centrais
 # ==============================================================================
 
-@dataclass
-class SinteringDataRecord:
-    """
-    Uma estrutura padronizada para armazenar um conjunto de dados de sinterização,
-    seus metadados e parâmetros associados. Facilita a passagem de dados
-    entre os diferentes módulos da aplicação.
-    """
-    ensaio_id: int
-    Ea: float
-    tipo_dado_y: str
-    df: pd.DataFrame
-    metadata: dict = field(default_factory=dict)
-
-class DataHistory:
-    """
-    Classe para armazenar o histórico de estados de um DataFrame, permitindo
-    operações de "undo" (desfazer) ao longo do processamento.
-    """
-    def __init__(self):
-        self.history: List[Dict[str, Any]] = []
-
-    def push(self, data: pd.DataFrame, module_name: str):
-        """Adiciona uma cópia do estado atual dos dados ao histórico."""
-        record = {
-            'timestamp': datetime.datetime.now(),
-            'module': module_name,
-            'columns': list(data.columns),
-            'data': copy.deepcopy(data)
-        }
-        self.history.append(record)
-
-    def pop(self) -> Optional[Dict[str, Any]]:
-        """Remove e retorna o último estado salvo no histórico."""
-        return self.history.pop() if self.history else None
-
-    def peek(self) -> Optional[Dict[str, Any]]:
-        """Visualiza o último estado salvo sem removê-lo."""
-        return self.history[-1] if self.history else None
-
-    def get_all(self) -> List[Dict[str, Any]]:
-        """Retorna uma cópia de todo o histórico."""
-        return list(self.history)
-
-# ==============================================================================
-# Funções Utilitárias da Interface
-# ==============================================================================
-
-def add_suffix_once(col: str, suffix: str) -> str:
-    """Retorna a string 'col' com o 'suffix' adicionado, se ela ainda não o possuir."""
-    return col if col.endswith(suffix) else f"{col}{suffix}"
-
-def criar_titulo(texto: str, nivel: int = 2) -> widgets.HTML:
-    """Cria um título HTML para a interface, padronizando os cabeçalhos de seção."""
-    return widgets.HTML(f"<h{nivel}>{texto}</h{nivel}>")
-
-def exibir_mensagem(msg: str):
-    """Exibe uma mensagem informativa na interface com formatação em azul."""
-    display(HTML(f"<p style='color:blue; font-style:italic;'>{msg}</p>"))
-
-def exibir_erro(msg: str):
-    """Exibe uma mensagem de erro na interface com destaque em vermelho e negrito."""
-    display(HTML(f"<p style='color:red; font-weight:bold;'>ERRO: {msg}</p>"))
-
-def criar_caixa_colapsavel(titulo: str, conteudo: widgets.Widget, aberto: bool = False) -> widgets.Accordion:
-    """Cria uma caixa colapsável (Accordion) para organizar seções da interface."""
-    acc = widgets.Accordion(children=[conteudo])
-    acc.set_title(0, titulo)
-    if not aberto:
-        acc.selected_index = None
-    return acc
-
-def gerar_link_download(df: pd.DataFrame, nome_arquivo: str = "dados.xlsx") -> HTML:
-    """Gera um link HTML para download de um DataFrame como um arquivo Excel."""
-    uid = uuid4().hex[:6]
-    stem = Path(nome_arquivo).stem
-    final_name = f"{stem}_{uid}.xlsx"
-
-    # Usa um buffer na memória em vez de salvar em /tmp
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False)
-
-    # Codifica o buffer em base64 para embutir no link
-    b64 = base64.b64encode(output.getvalue()).decode()
-
-    return HTML(f'<a download="{final_name}" href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" target="_blank">Clique aqui para baixar: {final_name}</a>')
-
-# ==============================================================================
-# Modelos Matemáticos
-# ==============================================================================
-
-def boltzmann_sigmoid(x, A1, A2, x0, dx):
-    """Função sigmoidal de Boltzmann (4 parâmetros)."""
-    exp_term = np.exp(np.clip((x - x0) / dx, -700, 700))
-    return A2 + (A1 - A2) / (1 + exp_term)
-
-def generalized_logistic_stable(x, A1, A2, x0, b, c):
-    """Função Logística Generalizada (5 parâmetros), numericamente estável."""
-    z = -(x - x0) / b
-    # Evita overflow em np.exp(z) quando z é grande
-    log_1_plus_exp_z = np.where(z > 30, z, np.log1p(np.exp(z)))
-    denominator = np.exp(c * log_1_plus_exp_z)
-    return A2 + (A1 - A2) / (denominator + 1e-12) # Evita divisão por zero
-
-# modulo1_interface.py
-
-import numpy as np
-import ipywidgets as widgets
-from . import core
 
 class EaSelectionWidget:
     """Widget reutilizável para selecionar Energias de Ativação (Ea)."""
@@ -488,29 +384,6 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d, PchipInterpolator, Akima1DInterpolator
 
-# Importando do seu arquivo core
-# # from .core import (
-#     DataHistory, exibir_mensagem, exibir_erro, gerar_link_download
-# )
-
-def orlandini_araujo_filter(df: pd.DataFrame, bin_size: int = 10) -> pd.DataFrame:
-    """
-    Aplica o filtro de Orlandini-Araújo, agregando dados em intervalos de tempo.
-    """
-    time_col = next((col for col in df.columns if col.startswith('Time_s')), None)
-    temp_col = next((col for col in df.columns if col.startswith('Temperature_C')), None)
-    dens_col = next((col for col in df.columns if col.startswith('DensidadePct')), None)
-
-    if not (time_col and temp_col and dens_col):
-        raise ValueError("Faltam colunas (Time_s, Temperature_C, DensidadePct) para Orlandini-Araújo.")
-
-    dfc = df.copy()
-    dfc['bin'] = np.floor(dfc[time_col] / bin_size).astype(int)
-
-    # Preserva todas as colunas originais, pegando a média por bin
-    agg_dict = {col: 'mean' for col in df.columns}
-    grouped = dfc.groupby('bin').agg(agg_dict).reset_index(drop=True)
-    return grouped
 
 class Modulo3Recorte:
     """
@@ -2977,72 +2850,6 @@ class Modulo6_1ArrheniusDisplay:
 import copy
 import datetime
 
-class DataHistory:
-    """
-    Classe para armazenar o histórico dos DataFrames.
-
-    Cada registro armazena:
-      - A cópia profunda do DataFrame (para evitar alterações futuras)
-      - O nome do módulo de onde os dados vieram
-      - Os nomes das colunas no momento do armazenamento
-      - Um timestamp indicando quando o estado foi salvo.
-    """
-    def __init__(self):
-        self.history = []  # Lista para armazenar os registros de histórico
-
-    def push(self, data, module_name: str):
-        """
-        Salva uma cópia do DataFrame 'data', juntamente com informações do módulo.
-
-        Args:
-            data (pd.DataFrame): O DataFrame a ser armazenar.
-            module_name (str): Identificador do módulo de origem.
-        """
-        timestamp = datetime.datetime.now()
-        record = {
-            'timestamp': timestamp,
-            'module': module_name,
-            'columns': list(data.columns),
-            'data': copy.deepcopy(data)
-        }
-        self.history.append(record)
-        # Log amigável para o usuário
-        print(f"[HISTORY] [{timestamp:%Y-%m-%d %H:%M:%S}] Salvado: '{module_name}' com colunas {record['columns']}")
-
-    def pop(self):
-        """
-        Remove e retorna o registro mais recente do histórico.
-
-        Returns:
-            dict | None: O registro removido ou None se histórico vazio.
-        """
-        if not self.history:
-            print("[HISTORY] Histórico vazio. Nada a restaurar.")
-            return None
-        record = self.history.pop()
-        ts = record['timestamp']
-        print(f"[HISTORY] Removido: '{record['module']}' salvo em {ts:%Y-%m-%d %H:%M:%S}")
-        return record
-
-    def peek(self):
-        """
-        Retorna o registro mais recente sem removê-lo.
-
-        Returns:
-            dict | None: O registro mais recente ou None se histórico vazio.
-        """
-        if not self.history:
-            return None
-        return self.history[-1]
-
-    def get_all(self):
-        """
-        Retorna todos os registros de histórico.
-
-        Returns:
-            list: Lista de registros de histórico.
-        """
-        return list(self.history)
 
 # ==============================================================================
 # CONTROLADOR PRINCIPAL (MAIN INTERACTIVE) - VERSÃO HÍBRIDA
