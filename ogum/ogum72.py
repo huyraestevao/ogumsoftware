@@ -290,6 +290,14 @@ class Modulo2Importacao:
         w["map_confirm_btn"].layout.display = ""
 
     def _on_confirm_mapping(self, idx):
+        """Validate mapping selections and rename columns for a given test.
+
+        Args:
+            idx (int): Index of the test being processed.
+
+        Returns:
+            Callable: Callback bound to the confirmation button.
+        """
         def _cb(_):
             w = self.file_uploads[idx]
             with w["out_local"]:
@@ -746,6 +754,7 @@ out = widgets.Output()
 
 
 def on_proceed_clicked(b):
+    """Handle the method selection and hide the choice interface."""
     with out:
         clear_output()
         choice = method_radio.value

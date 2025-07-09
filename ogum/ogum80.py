@@ -45,19 +45,7 @@ from scipy.stats import linregress
 # Exige scipy>=1.6 para a localização de cumtrapz em .integrate
 try:
     from scipy.integrate import cumtrapz
-except ImportError:
-    # Implementação alternativa caso o SciPy não esteja disponível
-    def cumtrapz(y, x=None, initial=0):
-        y = np.asarray(y)
-        if x is None:
-            x = np.arange(len(y))
-        else:
-            x = np.asarray(x)
-        res = [initial]
-        for i in range(1, len(y)):
-            trap = (y[i - 1] + y[i]) * (x[i] - x[i - 1]) / 2.0
-            res.append(res[-1] + trap)
-        return np.array(res)
+
 
 
 # ==============================================================================
@@ -295,6 +283,14 @@ class Modulo2Importacao:
         w["map_confirm_btn"].layout.display = ""
 
     def _on_confirm_mapping(self, idx):
+        """Validate mapping selections and rename columns for a given test.
+
+        Args:
+            idx (int): Index of the test being processed.
+
+        Returns:
+            Callable: Callback bound to the confirmation button.
+        """
         def _cb(_):
             w = self.file_uploads[idx]
             with w["out_local"]:
@@ -944,6 +940,7 @@ out = widgets.Output()
 
 
 def on_proceed_clicked(b):
+    """Handle the method selection and hide the choice interface."""
     with out:
         clear_output()
         choice = method_radio.value

@@ -25,12 +25,6 @@ from ipywidgets import Layout
 # ==============================================================================
 
 
-def final_parse_and_process_flash_data(
-    file_content, diametro_mm, espessura_inicial_mm, espessura_final_mm, debug_mode=False
-):
-    """
-    Versão Final 6.0: Inclui um modo de depuração (debug_mode) para imprimir
-    logs detalhados do processo de parsing e validação.
     """
     log_messages = []
 
@@ -196,6 +190,7 @@ processed_df = None
 
 
 def on_process_button_clicked(b):
+    """Process the uploaded file and store the resulting DataFrame."""
     global processed_df
     status_output.clear_output()
     graphs_output.clear_output()
@@ -227,7 +222,7 @@ def on_process_button_clicked(b):
 
 
 def create_download_link(df):
-    original_filename = list(uploader.value.keys())[0].replace(".txt", "")
+
     download_filename = f"Resultados_Auto_{original_filename}.csv"
     df_to_export = df.copy()
     df_to_export.rename(columns={"Tempo_Normalizado": "Tempo_Flash (s)"}, inplace=True)
@@ -238,6 +233,7 @@ def create_download_link(df):
 
 
 def on_basic_graphs_clicked(b):
+    """Plot basic analysis graphs using ``processed_df``."""
     with graphs_output:
         graphs_output.clear_output()
         if processed_df is None:
@@ -264,6 +260,7 @@ def on_basic_graphs_clicked(b):
 
 
 def on_adv_graphs_clicked(b):
+    """Plot additional analysis graphs using ``processed_df``."""
     with graphs_output:
         graphs_output.clear_output()
         if processed_df is None:
@@ -290,6 +287,7 @@ def on_adv_graphs_clicked(b):
 
 
 def on_export_button_clicked(b):
+    """Provide a download link for the processed results."""
     with export_output:
         export_output.clear_output()
         if processed_df is None:
@@ -310,8 +308,4 @@ input_box = widgets.VBox([uploader, widgets.HBox([diametro_input, esp_inicial_in
 action_box = widgets.VBox([process_button, export_button])
 graphs_buttons_box = widgets.HBox([basic_graphs_button, adv_graphs_button])
 title = widgets.HTML("<h3>Aplicação Final para Análise de Dados de Flash Sintering (v6.0 - com Debug)</h3>")
-display(
-    widgets.VBox(
-        [title, widgets.HBox([input_box, action_box]), status_output, graphs_buttons_box, graphs_output, export_output]
-    )
-)
+
