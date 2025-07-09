@@ -1,12 +1,8 @@
-import importlib
 import pytest
 
-import ogum.fem_interface as fem
+from ogum.fem_interface import create_unit_mesh
 
 
 def test_fem_stub():
-    if importlib.util.find_spec("fenicsx") is None:
-        with pytest.raises(ModuleNotFoundError):
-            fem.create_unit_mesh(1.0)
-    else:
-        fem.create_unit_mesh(1.0)
+    with pytest.raises(NotImplementedError):
+        create_unit_mesh(1.0)

@@ -10,6 +10,4 @@ def create_unit_mesh(mesh_size: float) -> Any:
     Returns:
         A mesh object from FEniCSx.
     """
-    from fenicsx.mesh import create_unit_square  # type: ignore
-    # TODO: implement proper mesh generation
-    pass
+    raise NotImplementedError("FEM functionality is not yet implemented.")
