@@ -2810,8 +2810,6 @@ from IPython.display import display, clear_output
 # Import de todos os seus módulos de UI e processamento
 from modulo2_importacao import Modulo2Importacao
 from modulo3_filtrorecorte import Modulo3Recorte
-# Import do MÓDULO NOVO que criamos
-# from modulo4_simulacao_hibrida import Modulo4SimulacaoHibrida
 # O nome original dos seus módulos seguintes foi mantido para compatibilidade
 from modulo4_logtheta import ModuloLogTheta
 from modulo5_1_alinhamento import Modulo5_1Alinhamento
@@ -2846,7 +2844,6 @@ class MainInteractive:
             'IMPORT',
             'FILTER',
             'METHOD_CHOICE',
-            'LOGTHETA_ROUTER', # Roteador para escolher entre análise real ou híbrida
             'LOGTHETA_CALC',   # Cálculo do LogTheta
             'ALIGN',
             'BLAINE',
@@ -2885,7 +2882,7 @@ class MainInteractive:
         self.nav_buttons['back'].disabled = is_first_step
 
         # Desabilita o botão 'Próximo' em etapas com navegação interna
-        interactive_steps = ['METHOD_CHOICE', 'REVIEW', 'FINAL_ANALYSIS', 'REFINEMENT', 'ARRHENIUS_DISPLAY', 'LOGTHETA_ROUTER']
+        interactive_steps = ['METHOD_CHOICE', 'REVIEW', 'FINAL_ANALYSIS', 'REFINEMENT', 'ARRHENIUS_DISPLAY']
         self.nav_buttons['next'].disabled = (self.current_step_name in interactive_steps)
 
     def _on_next_step(self, _=None):
@@ -2917,7 +2914,6 @@ class MainInteractive:
         step_runners = {
             'INTRO': self._show_intro, 'IMPORT': self._show_import, 'FILTER': self._show_filter,
             'METHOD_CHOICE': self._show_method_choice,
-            'LOGTHETA_ROUTER': self._show_logtheta_router,
             'LOGTHETA_CALC': self._show_logtheta_calc,
             'ARRHENIUS_CALC': self._show_arrhenius_calc,
             'ARRHENIUS_DISPLAY': self._show_arrhenius_display,
@@ -2965,31 +2961,18 @@ class MainInteractive:
                 return
 
             # Navega para o próximo passo apropriado
-            next_step = 'LOGTHETA_ROUTER' if self.analysis_choice == 'logtheta' else 'ARRHENIUS_CALC'
+            next_step = 'LOGTHETA_CALC' if self.analysis_choice == 'logtheta' else 'ARRHENIUS_CALC'
             self.show_module_by_step(next_step)
         btn.on_click(on_confirm)
         self.modules_container.children = (widgets.VBox([widgets.HTML("<h4>Escolha o método de análise principal:</h4>"), radio, btn]),)
 
-    def _show_logtheta_router(self):
-        self.step_label.value = "<h3>Passo 4: Preparar Dados para Curva Mestra</h3>"
-        dfs_from_mod3 = self.modules['mod3'].get_dfs()
-        # Instancia o nosso novo módulo roteador
-        self.modules['router'] = Modulo4SimulacaoHibrida(dfs_from_mod3)
-        self.modules_container.children = (self.modules['router'].main_ui,)
-        # Desabilita o 'Próximo' pois a navegação é interna
-        self.nav_buttons['next'].disabled = True
 
     def _show_logtheta_calc(self):
-        self.step_label.value = "<h3>Passo 5: Calcular LogTheta</h3>"
-        # Pega o DataFrame de saída do roteador
-        df_concatenado = self.modules['router'].get_final_dataframe()
-        if df_concatenado is None or df_concatenado.empty:
+        self.step_label.value = "<h3>Passo 4: Calcular LogTheta</h3>"
+        dfs_para_logtheta = [df.copy() for df in self.modules['mod3'].get_dfs()]
+        if not dfs_para_logtheta:
             exibir_erro("O módulo anterior não produziu dados para análise. Volte e execute o passo anterior.")
             return
-
-        # CRUCIAL: O Módulo de LogTheta espera uma LISTA de DataFrames.
-        # Nós precisamos re-dividir o DataFrame concatenado.
-        dfs_para_logtheta = [group.drop('Ensaio', axis=1) for _, group in df_concatenado.groupby('Ensaio')]
 
         self.modules['logtheta'] = ModuloLogTheta(dfs_para_logtheta)
         self.modules_container.children = (self.modules['logtheta'].ui,)
