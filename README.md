@@ -13,5 +13,7 @@ pytest -q
 ## Estrutura do código
 O diretório `ogum/` reúne os módulos Python gerados a partir dos notebooks em
 `notebooks/`. Esses notebooks são exportados para arquivos `.py` que dependem
-de utilidades comuns localizadas em `ogum/utils.py`. Manter esse arquivo
-presente permite que os scripts exportados funcionem sem ajustes adicionais.
+de utilidades comuns localizadas em `ogum/utils.py`. Esse módulo concentra
+funções auxiliares simples, como `normalize_columns`, utilizadas por diferentes
+experimentos. Manter esse arquivo presente permite que os scripts exportados
+funcionem sem ajustes adicionais e compartilhem a mesma base de utilidades.
