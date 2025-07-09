@@ -1,5 +1,5 @@
 # Ogum Sintering – versão clean 🚀
-[![CI](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml/badge.svg)](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml)
+[![CI](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml/badge.svg)](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml) [![pytest](https://github.com/huyraestevao/ogumsoftware/actions/workflows/pytest.yml/badge.svg)](https://github.com/huyraestevao/ogumsoftware/actions/workflows/pytest.yml)
 
 Este repositório contém quatro experimentos (64, 72, 80 e FZEA) em formato
 Jupyter (`notebooks/`) e seus correspondentes módulos Python (`ogum/`).
@@ -21,6 +21,18 @@ funcionem sem ajustes adicionais e compartilhem a mesma base de utilidades.
 O módulo `ogum/sovs.py` fornece `SOVSSolver`, um integrador baseado no modelo
 de Skorohod-Olevsky. Instancie-o com os parâmetros do material e utilize
 ``solve(t, T)`` para obter a evolução da densidade relativa ao longo do tempo.
+
+## Solver SOVS
+
+```python
+import numpy as np
+from ogum.sovs import SOVSSolver
+
+solver = SOVSSolver(Ea=3.1e5, A=1e6)
+t = np.linspace(0, 3600, 50)
+T = np.full_like(t, 1373)
+x = solver.solve(t, T)
+```
 
 ## Estilo & Lint
 O projeto utiliza o [Ruff](https://docs.astral.sh/ruff/) tanto para lint quanto
