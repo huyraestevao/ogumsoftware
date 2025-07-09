@@ -12,6 +12,7 @@ from .core import (
     gerar_link_download,
     boltzmann_sigmoid,
     generalized_logistic_stable,
+    SOVSSolver,
 )
 from .utils import normalize_columns, orlandini_araujo_filter
 
@@ -27,6 +28,7 @@ __all__ = [
     "gerar_link_download",
     "boltzmann_sigmoid",
     "generalized_logistic_stable",
+    "SOVSSolver",
     "normalize_columns",
     "orlandini_araujo_filter",
 ]

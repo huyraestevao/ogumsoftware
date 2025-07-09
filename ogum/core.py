@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .utils import normalize_columns
+from .sovs import SOVSSolver
 
 import numpy as np
 import pandas as pd
@@ -207,5 +208,6 @@ __all__ = [
     "gerar_link_download",
     "boltzmann_sigmoid",
     "generalized_logistic_stable",
+    "SOVSSolver",
     "normalize_columns",
 ]
