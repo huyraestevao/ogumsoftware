@@ -24,7 +24,7 @@ from pathlib import Path
 from uuid import uuid4
 from io import BytesIO
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from collections import defaultdict
 
 # ----------------------------------------
@@ -41,7 +41,10 @@ from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit, minimize_scalar
 from scipy.stats import linregress
 # Exige scipy>=1.6 para a localização de cumtrapz em .integrate
-from scipy.integrate import cumtrapz
+try:
+    from scipy.integrate import cumtrapz
+except ImportError:  # pragma: no cover - older scipy
+    from scipy.integrate import cumulative_trapezoid as cumtrapz
 
 # ==============================================================================
 # Constantes Globais
@@ -2029,7 +2032,7 @@ class Modulo5_4_1Comparisons:
                 display(self.results_df.style.format({'Melhor_Ea_kJ_mol': '{:.2f}', 'Erro_Minimo': '{:.6g}'}))
 
                 display(HTML("<h4>Detalhamento do Erro vs. Ea</h4>"))
-                display(self.comparison_details_df.style.format({'Ea
+                # display(self.comparison_details_df.style.format({'Ea'}))
 
 # modulo5_4_2_Ref.py
 
