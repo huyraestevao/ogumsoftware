@@ -2,37 +2,47 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 class SOVSSolver:
-    """Solver para o modelo SOVS de sinterização baseado em ODE."""
+    """Integrate the Skorohod–Olevsky (SOVS) sintering model.
 
-    def __init__(self, Ea: float, A: float, *, n: float = 1.0, x0: float = 0.0, dx: float = 1e-3) -> None:
-        """Initialize solver with material parameters.
+    The governing equation is
+
+    ``dx/dt = A * exp(-Ea / (R * T)) * (1 - x) * x**n``,
+    where ``x`` is the relative density fraction.
+    """
+
+    def __init__(
+        self,
+        Ea: float,
+        A: float,
+        x0: float = 0.0,
+        dx: float = 1e-3,
+        n: float = 1.0,
+        R: float = 8.314,
+    ) -> None:
+        """Create a solver instance.
 
         Args:
-            Ea: Energia de ativação (J/mol).
-            A: Fator pré-exponencial.
-            n: Expoente cinético ``x``.
-            x0: Valor inicial de ``x``.
-            dx: Passo de integração.
+            Ea: Activation energy in J/mol.
+            A: Pre-exponential factor.
+            x0: Initial relative density fraction.
+            dx: Step size used by the integrator.
+            n: Reaction order exponent in ``x**n``.
+            R: Universal gas constant.
         """
+
+
         self.Ea = Ea
         self.A = A
         self.n = n
         self.x0 = x0
         self.dx = dx
+        self.n = n
+        self.R = R
 
-    def _ode(self, t, x, T):
-        R = 8.314
-        k = self.A * np.exp(-self.Ea / (R * T))
-        return k * (1 - x) * x**self.n
+    def _ode(self, t: float, x: float, T: float) -> float:
+        """Return ``dx/dt`` for the SOVS model.
 
-    def solve(self, t: np.ndarray, T: np.ndarray) -> np.ndarray:
-        start = self.x0
-        if np.isclose(start, 0.0) and self.n > 0:
-            start = self.dx
-        sol = solve_ivp(
-            fun=lambda tt, xx: self._ode(tt, xx, np.interp(tt, t, T)),
-            t_span=(t[0], t[-1]),
-            y0=[start],
+
             t_eval=t,
         )
         return sol.y[0]
