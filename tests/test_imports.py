@@ -1,4 +1,13 @@
 import importlib
- main
-def test_imports(m):
-    assert importlib.import_module(m)
+import pytest
+
+
+@pytest.mark.parametrize(
+    "module",
+    [
+        "ogum.core",
+        "ogum.utils",
+    ],
+)
+def test_imports(module):
+    assert importlib.import_module(module)

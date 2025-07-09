@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Dict, Iterable
 import pandas as pd
+import numpy as np
 
 
 def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd.DataFrame:
@@ -25,4 +26,30 @@ def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd
                 break
     return df.rename(columns=rename_dict)
 
-__all__ = ["normalize_columns"]
+
+def orlandini_araujo_filter(df: pd.DataFrame, bin_size: int = 10) -> pd.DataFrame:
+    """Average data in ``bin_size`` second intervals.
+
+    The function looks for columns beginning with ``Time_s``, ``Temperature_C``
+    and ``DensidadePct`` to perform the aggregation.
+    """
+    time_col = next((c for c in df.columns if c.startswith("Time_s")), None)
+    temp_col = next((c for c in df.columns if c.startswith("Temperature_C")), None)
+    dens_col = next((c for c in df.columns if c.startswith("DensidadePct")), None)
+
+    if not (time_col and temp_col and dens_col):
+        raise ValueError(
+            "Faltam colunas (Time_s, Temperature_C, DensidadePct) p/ Orlandini-Araujo."
+        )
+
+    dfc = df.copy()
+    dfc["bin"] = np.floor(dfc[time_col] / bin_size).astype(int)
+    grouped = (
+        dfc.groupby("bin").agg({time_col: "mean", temp_col: "mean", dens_col: "mean"})
+        .reset_index(drop=True)
+    )
+    return grouped
+
+
+__all__ = ["normalize_columns", "orlandini_araujo_filter"]
+
