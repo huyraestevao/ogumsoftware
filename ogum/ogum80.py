@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 import ipywidgets as widgets
 from IPython.display import display, HTML
+from ogum.utils import orlandini_araujo_filter
 
 # Funções do SciPy
 from scipy.signal import savgol_filter
