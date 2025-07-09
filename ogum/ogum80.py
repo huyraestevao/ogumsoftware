@@ -24,7 +24,7 @@ from pathlib import Path
 from uuid import uuid4
 from io import BytesIO
 from dataclasses import dataclass, field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from collections import defaultdict
 
 # ----------------------------------------
@@ -41,7 +41,22 @@ from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit, minimize_scalar
 from scipy.stats import linregress
 # Exige scipy>=1.6 para a localização de cumtrapz em .integrate
-from scipy.integrate import cumtrapz
+try:
+    from scipy.integrate import cumtrapz
+except Exception:  # pragma: no cover - fallback for environments without SciPy
+    import numpy as np
+
+    def cumtrapz(y, x=None, initial=0):
+        y = np.asarray(y)
+        if x is None:
+            x = np.arange(len(y))
+        else:
+            x = np.asarray(x)
+        res = [initial]
+        for i in range(1, len(y)):
+            trap = (y[i - 1] + y[i]) * (x[i] - x[i - 1]) / 2.0
+            res.append(res[-1] + trap)
+        return np.array(res)
 
 import sys
 import ogum.utils as core
@@ -142,9 +157,9 @@ from IPython.display import display, clear_output, HTML
 from io import BytesIO
 
 # Importando do seu arquivo core
-from core import (
-    DataHistory, criar_titulo, exibir_mensagem, exibir_erro, add_suffix_once
-)
+# # from .core import (
+#     DataHistory, criar_titulo, exibir_mensagem, exibir_erro, add_suffix_once
+# )
 
 class Modulo2Importacao:
     """
@@ -603,7 +618,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 # Importa as constantes e funções necessárias dos seus módulos
-from core import criar_titulo, exibir_mensagem, exibir_erro, R
+# from .core import criar_titulo, exibir_mensagem, exibir_erro, R
 
 class Modulo4Roteador:
     """
@@ -1296,11 +1311,11 @@ import pandas as pd
 from typing import List, Dict
 
 # Importações do core/modulo1
-from core import (
-    SinteringDataRecord, exibir_mensagem, exibir_erro,
-    boltzmann_sigmoid, generalized_logistic_stable
-)
-from scipy.optimize import curve_fit
+# # from .core import (
+#     SinteringDataRecord, exibir_mensagem, exibir_erro,
+#     boltzmann_sigmoid, generalized_logistic_stable
+# )
+# from scipy.optimize import curve_fit
 
 class Modulo5_3Sigmoides:
     """
@@ -1407,7 +1422,7 @@ from typing import List, Dict, Any
 from collections import defaultdict
 
 # Importando do seu arquivo core
-from core import SinteringDataRecord, exibir_mensagem, exibir_erro
+# from .core import SinteringDataRecord, exibir_mensagem, exibir_erro
 
 class Modulo5_3_1_Revisao:
     """
@@ -1605,7 +1620,7 @@ from typing import List
 
 # As importações abaixo são necessárias para o funcionamento.
 # Elas devem estar definidas em Módulos anteriores do notebook.
-# from core import SinteringDataRecord
+# from .core import SinteringDataRecord
 # from modulo5_4_1_comparaçao import Modulo5_4_1Comparisons
 # from modulo5_4_2_Ref import Modulo5_4_2Ref
 # from modulo5_4_3_blaine_linear import Modulo5_4_3BlaineLinear
@@ -1902,7 +1917,9 @@ class Modulo5_4_1Comparisons:
                 display(self.results_df.style.format({'Melhor_Ea_kJ_mol': '{:.2f}', 'Erro_Minimo': '{:.6g}'}))
 
                 display(HTML("<h4>Detalhamento do Erro vs. Ea</h4>"))
-                display(self.comparison_details_df.style.format({'Ea
+                # A linha abaixo foi truncada no notebook original e foi
+                # comentada para manter a compatibilidade durante a importação
+                # display(self.comparison_details_df.style.format({'Ea
 
 # modulo5_4_2_Ref.py
 
@@ -2255,11 +2272,11 @@ from scipy.optimize import least_squares, curve_fit
 import matplotlib.pyplot as plt
 
 # Supondo que as definições e funções abaixo foram importadas do seu módulo 'core' ou 'modulo1_interface'
-from core import (
-    SinteringDataRecord, exibir_mensagem, exibir_erro, R, cumtrapz,
-    boltzmann_sigmoid, generalized_logistic_stable
-)
-
+# # from .core import (
+#     SinteringDataRecord, exibir_mensagem, exibir_erro, R, cumtrapz,
+#     boltzmann_sigmoid, generalized_logistic_stable
+# )
+# 
 class Modulo5_5_Refinamento:
     """
     Módulo 5.5 – Refinamento da Energia de Ativação e Cálculo de Incerteza.
@@ -2844,7 +2861,7 @@ from IPython.display import display, clear_output
 from modulo2_importacao import Modulo2Importacao
 from modulo3_filtrorecorte import Modulo3Recorte
 # Import do MÓDULO NOVO que criamos
-from modulo4_simulacao_hibrida import Modulo4SimulacaoHibrida
+# from modulo4_simulacao_hibrida import Modulo4SimulacaoHibrida
 # O nome original dos seus módulos seguintes foi mantido para compatibilidade
 from modulo4_logtheta import ModuloLogTheta
 from modulo5_1_alinhamento import Modulo5_1Alinhamento
@@ -2857,7 +2874,7 @@ from modulo6_0_arrhenius import Modulo6_0_Arrhenius
 from modulo6_1_arrhenius_display import Modulo6_1ArrheniusDisplay
 
 # Utilitários de interface do seu arquivo core
-from core import exibir_mensagem, exibir_erro
+# from .core import exibir_mensagem, exibir_erro
 
 class MainInteractive:
     """
@@ -3100,6 +3117,5 @@ class MainInteractive:
     def trigger_refit(self, p0_overrides):
         self._run_fit_and_show_review(p0_overrides=p0_overrides)
 
-# --- Para executar a aplicação ---#
-main_app = MainInteractive()
-main_app.display()
+# --- Para executar a aplicação ---## main_app = MainInteractive()
+# main_app.display()
