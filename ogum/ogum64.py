@@ -52,6 +52,7 @@ from ogum.utils import (
 # Importa funções do SciPy para processamento dos dados, filtragem e ajuste de curvas (cruciais para sinterização)
 from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
+
 try:
     from scipy.integrate import cumtrapz
 except ImportError:
@@ -64,9 +65,10 @@ except ImportError:
             x = np.asarray(x)
         res = [initial]
         for i in range(1, len(y)):
-            trap = (y[i-1] + y[i]) * (x[i] - x[i-1]) / 2.0
+            trap = (y[i - 1] + y[i]) * (x[i] - x[i - 1]) / 2.0
             res.append(res[-1] + trap)
         return np.array(res)
+
 
 from scipy.optimize import curve_fit
 
@@ -80,11 +82,10 @@ from IPython.display import display, clear_output, HTML
 R = 8.314  # Constante universal dos gases (J/mol.K) – usada para cálculos termodinâmicos na sinterização
 
 
-
-
 # =====================================================================
 # ADICIONE ESTA CLASSE NO FINAL DO SEU ARQUIVO modulo1_interface.py
 # =====================================================================
+
 
 class EaSelectionWidget:
     """
@@ -92,6 +93,7 @@ class EaSelectionWidget:
     nos modos 'Discretas' ou 'Intervalo'. Encapsula toda a lógica da UI
     e o método para obter a lista de energias selecionadas.
     """
+
     def __init__(self):
         self._build_ui()
 
@@ -99,16 +101,16 @@ class EaSelectionWidget:
         # --- Widgets Internos ---
         self.radio_energy_choice = widgets.RadioButtons(
             options=[("Discretas", "discretas"), ("Intervalo", "intervalo")],
-            value="discretas", description="Modo de Seleção de Ea:"
+            value="discretas",
+            description="Modo de Seleção de Ea:",
         )
 
         # Widgets para o modo "Discretas"
         self.dropdown_num_energies = widgets.Dropdown(
-            options=[(f"{i} energias", i) for i in range(1, 11)],
-            value=3, description="Quantidade:"
+            options=[(f"{i} energias", i) for i in range(1, 11)], value=3, description="Quantidade:"
         )
-        self.btn_energy_add = widgets.Button(description="Gerar Campos", button_style='info')
-        self.energies_box = widgets.VBox([]) # Container para os campos de Ea
+        self.btn_energy_add = widgets.Button(description="Gerar Campos", button_style="info")
+        self.energies_box = widgets.VBox([])  # Container para os campos de Ea
 
         # Widgets para o modo "Intervalo"
         self.float_min = widgets.FloatText(value=100.0, description="Ea Mín (kJ/mol):")
@@ -116,31 +118,29 @@ class EaSelectionWidget:
         self.num_points = widgets.IntText(value=26, description="Nº de Pontos:")
 
         # --- Containers de Layout ---
-        self.discretas_container = widgets.VBox([
-            self.dropdown_num_energies, self.btn_energy_add, self.energies_box
-        ])
-        self.intervalo_container = widgets.VBox([
-            self.float_min, self.float_max, self.num_points
-        ])
+        self.discretas_container = widgets.VBox([self.dropdown_num_energies, self.btn_energy_add, self.energies_box])
+        self.intervalo_container = widgets.VBox([self.float_min, self.float_max, self.num_points])
 
         # Container principal que alterna os modos
         self.main_container = widgets.VBox([self.discretas_container])
 
         # --- Conecta Callbacks ---
-        self.radio_energy_choice.observe(self._on_energy_choice_changed, names='value')
+        self.radio_energy_choice.observe(self._on_energy_choice_changed, names="value")
         self.btn_energy_add.on_click(self._on_add_energies)
 
         # --- Widget Final (Público) ---
         # Este é o widget que será exibido por outros módulos
-        self.ui = widgets.VBox([
-            widgets.HTML("<b>Definir Energias de Ativação (Ea) para Análise</b>"),
-            self.radio_energy_choice,
-            self.main_container
-        ])
+        self.ui = widgets.VBox(
+            [
+                widgets.HTML("<b>Definir Energias de Ativação (Ea) para Análise</b>"),
+                self.radio_energy_choice,
+                self.main_container,
+            ]
+        )
 
     def _on_energy_choice_changed(self, change):
         """Alterna a exibição entre os containers de modo."""
-        if change['new'] == "discretas":
+        if change["new"] == "discretas":
             self.main_container.children = [self.discretas_container]
         else:
             self.main_container.children = [self.intervalo_container]
@@ -149,7 +149,7 @@ class EaSelectionWidget:
         """Gera os campos de texto para o modo 'Discretas'."""
         n = self.dropdown_num_energies.value
         self.energies_box.children = [
-            widgets.FloatText(value=round(100.0 + 50 * i, 1), description=f"Ea {i+1} (kJ/mol):") for i in range(n)
+            widgets.FloatText(value=round(100.0 + 50 * i, 1), description=f"Ea {i + 1} (kJ/mol):") for i in range(n)
         ]
         # Gera 3 campos por padrão na primeira vez
         if not self.energies_box.children:
@@ -170,13 +170,14 @@ class EaSelectionWidget:
                 exibir_erro("Nenhuma energia válida foi informada no modo 'Discretas'.")
                 return []
             return sorted(set(values))
-        else: # Modo Intervalo
+        else:  # Modo Intervalo
             ea_min, ea_max = self.float_min.value, self.float_max.value
             n_pts = self.num_points.value
             if ea_max <= ea_min or n_pts < 2:
                 exibir_erro("No modo 'Intervalo', Ea Máx > Ea Mín e Nº de Pontos deve ser >= 2.")
                 return []
             return list(np.linspace(ea_min, ea_max, n_pts))
+
 
 # ------------------------------
 # Fim do Módulo 1
@@ -193,6 +194,7 @@ from io import BytesIO
 # Funções e classes que devem estar definidas no Módulo 1 ou em uma célula anterior
 # Ex: criar_titulo, exibir_mensagem, exibir_erro, DataHistory, add_suffix_once
 
+
 class Modulo2Importacao:
     """
     Classe principal para o Módulo 2 – Importação de Dados.
@@ -203,6 +205,7 @@ class Modulo2Importacao:
     - O mapeamento e renomeação das colunas para garantir que existam as informações necessárias.
     - A conversão dos dados de retração para densidade.
     """
+
     def __init__(self):
         self.n_ensaios = 1
         self.dfs_ensaios = [None, None, None, None]  # Até 4 testes
@@ -234,25 +237,24 @@ class Modulo2Importacao:
         self.dropdown_ensaios = widgets.Dropdown(
             options=[("1 Teste", 1), ("2 Testes", 2), ("3 Testes", 3), ("4 Testes", 4)],
             value=1,
-            description="Número de testes:"
+            description="Número de testes:",
         )
-        self.btn_confirm_ensaios = widgets.Button(
-            description="Confirme o número de Testes",
-            button_style='success'
-        )
+        self.btn_confirm_ensaios = widgets.Button(description="Confirme o número de Testes", button_style="success")
         self.btn_confirm_ensaios.on_click(self._confirmar_num_ensaios)
 
         self.upload_box = widgets.VBox([])
         self.out = widgets.Output()
 
-        self.main_ui = widgets.VBox([
-            self.title_label,
-            self.intro_widget,
-            widgets.HTML("<b>Selecione quantos ensaios você selecionará:</b>"),
-            widgets.HBox([self.dropdown_ensaios, self.btn_confirm_ensaios]),
-            self.upload_box,
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                self.title_label,
+                self.intro_widget,
+                widgets.HTML("<b>Selecione quantos ensaios você selecionará:</b>"),
+                widgets.HBox([self.dropdown_ensaios, self.btn_confirm_ensaios]),
+                self.upload_box,
+                self.out,
+            ]
+        )
 
     def display(self):
         display(self.main_ui)
@@ -267,47 +269,64 @@ class Modulo2Importacao:
         self.file_uploads = []
 
         for i in range(self.n_ensaios):
-            uploader = widgets.FileUpload(accept='.xlsx', multiple=False)
-            btn_load = widgets.Button(description=f"Carregar Teste {i+1}", button_style='info')
+            uploader = widgets.FileUpload(accept=".xlsx", multiple=False)
+            btn_load = widgets.Button(description=f"Carregar Teste {i + 1}", button_style="info")
             out_local = widgets.Output()
 
-            map_title = widgets.HTML(f"<b>Mapear Colunas (Teste {i+1})</b>")
+            map_title = widgets.HTML(f"<b>Mapear Colunas (Teste {i + 1})</b>")
             map_box = widgets.VBox([])
-            map_confirm_btn = widgets.Button(description=f"Confirmar Mapeamento {i+1}", button_style='success')
-            map_confirm_btn.layout.display = 'none'
+            map_confirm_btn = widgets.Button(description=f"Confirmar Mapeamento {i + 1}", button_style="success")
+            map_confirm_btn.layout.display = "none"
 
-            conv_panel = widgets.VBox([
-                widgets.HTML("<b>Parâmetros de Conversão (Retração -> Densidade)</b>"),
-                widgets.FloatText(value=5.0, description="Tamanho Inicial (mm):"),
-                widgets.FloatText(value=55.0, description="Densidade Inicial (%):"),
-                widgets.FloatText(value=90.0, description="Densidade Final (%):"),
-                widgets.FloatText(value=6.0, description="Densidade Teórica (g/cm³):")
-            ])
+            conv_panel = widgets.VBox(
+                [
+                    widgets.HTML("<b>Parâmetros de Conversão (Retração -> Densidade)</b>"),
+                    widgets.FloatText(value=5.0, description="Tamanho Inicial (mm):"),
+                    widgets.FloatText(value=55.0, description="Densidade Inicial (%):"),
+                    widgets.FloatText(value=90.0, description="Densidade Final (%):"),
+                    widgets.FloatText(value=6.0, description="Densidade Teórica (g/cm³):"),
+                ]
+            )
             conv_params = {
                 "tamanho_inicial": conv_panel.children[1],
                 "dens_inicial": conv_panel.children[2],
                 "dens_final": conv_panel.children[3],
-                "dens_teorica": conv_panel.children[4]
+                "dens_teorica": conv_panel.children[4],
             }
 
-            btn_convert = widgets.Button(description=f"Converter Teste {i+1}", button_style='warning')
+            btn_convert = widgets.Button(description=f"Converter Teste {i + 1}", button_style="warning")
             btn_convert.on_click(self._on_convert(i))
 
-            self.file_uploads.append({
-                "uploader": uploader, "btn_load": btn_load, "out_local": out_local,
-                "map_title": map_title, "map_box": map_box, "map_confirm_btn": map_confirm_btn,
-                "mapping_dds": [], "conv_params": conv_params, "btn_convert": btn_convert
-            })
+            self.file_uploads.append(
+                {
+                    "uploader": uploader,
+                    "btn_load": btn_load,
+                    "out_local": out_local,
+                    "map_title": map_title,
+                    "map_box": map_box,
+                    "map_confirm_btn": map_confirm_btn,
+                    "mapping_dds": [],
+                    "conv_params": conv_params,
+                    "btn_convert": btn_convert,
+                }
+            )
 
             btn_load.on_click(self._on_load_data(i))
             map_confirm_btn.on_click(self._on_confirm_mapping(i))
 
-            vbox_ensaio = widgets.VBox([
-                widgets.HTML(f"<hr><b>Teste {i+1}</b>"),
-                uploader, btn_load, out_local,
-                map_title, map_box, map_confirm_btn,
-                conv_panel, btn_convert
-            ])
+            vbox_ensaio = widgets.VBox(
+                [
+                    widgets.HTML(f"<hr><b>Teste {i + 1}</b>"),
+                    uploader,
+                    btn_load,
+                    out_local,
+                    map_title,
+                    map_box,
+                    map_confirm_btn,
+                    conv_panel,
+                    btn_convert,
+                ]
+            )
             self.upload_box.children += (vbox_ensaio,)
 
     def _on_load_data(self, idx):
@@ -318,7 +337,7 @@ class Modulo2Importacao:
                 clear_output()
                 uploader = w["uploader"]
                 if not uploader.value:
-                    exibir_erro(f"Teste {idx+1}: Nenhum arquivo selecionado!")
+                    exibir_erro(f"Teste {idx + 1}: Nenhum arquivo selecionado!")
                     return
                 try:
                     if isinstance(uploader.value, dict):
@@ -328,17 +347,18 @@ class Modulo2Importacao:
                     else:
                         raise ValueError(f"Formato inesperado do uploader.")
 
-                    file_data = file_meta.get('content')
+                    file_data = file_meta.get("content")
                     if not file_data:
                         raise ValueError("O conteúdo do arquivo está vazio.")
 
                     df = pd.read_excel(BytesIO(file_data))
                     self.dfs_ensaios[idx] = df
-                    exibir_mensagem(f"Teste {idx+1}: Arquivo carregado. Colunas: {df.columns.tolist()}")
+                    exibir_mensagem(f"Teste {idx + 1}: Arquivo carregado. Colunas: {df.columns.tolist()}")
                     self._create_mapping_ui_for_ensaio(idx, df)
 
                 except Exception as e:
-                    exibir_erro(f"Teste {idx+1}: Erro ao ler o arquivo - {e}")
+                    exibir_erro(f"Teste {idx + 1}: Erro ao ler o arquivo - {e}")
+
         return callback
 
     def _create_mapping_ui_for_ensaio(self, idx, df):
@@ -346,25 +366,38 @@ class Modulo2Importacao:
         map_box = w["map_box"]
         map_confirm_btn = w["map_confirm_btn"]
         map_box.children = []
-        map_confirm_btn.layout.display = 'none'
+        map_confirm_btn.layout.display = "none"
 
         options = [
-            ('Ignorar', 'ignore'), ('Tempo (s)', 'Time_s'), ('Tempo (min)', 'Time_min'),
-            ('Tempo (h)', 'Time_h'), ('Temperatura (°C)', 'Temperature_C'),
-            ('Retração Absoluta', 'RetracaoAbs'), ('Retração Percentual', 'RetracaoPct'),
-            ('Retração Relativa', 'RetracaoRel'), ('Densidade Absoluta', 'DensidadeAbs'),
-            ('Densidade Percentual', 'DensidadePct')
+            ("Ignorar", "ignore"),
+            ("Tempo (s)", "Time_s"),
+            ("Tempo (min)", "Time_min"),
+            ("Tempo (h)", "Time_h"),
+            ("Temperatura (°C)", "Temperature_C"),
+            ("Retração Absoluta", "RetracaoAbs"),
+            ("Retração Percentual", "RetracaoPct"),
+            ("Retração Relativa", "RetracaoRel"),
+            ("Densidade Absoluta", "DensidadeAbs"),
+            ("Densidade Percentual", "DensidadePct"),
         ]
-        children_dd = [widgets.Dropdown(options=options, value='ignore', description=col) for col in df.columns]
+        children_dd = [widgets.Dropdown(options=options, value="ignore", description=col) for col in df.columns]
         map_box.children = children_dd
-        map_confirm_btn.layout.display = ''
+        map_confirm_btn.layout.display = ""
         w["mapping_dds"] = children_dd
 
-# =================================================================================
-# MÉTODO CORRIGIDO para a classe Modulo2Importacao
-# =================================================================================
+    # =================================================================================
+    # MÉTODO CORRIGIDO para a classe Modulo2Importacao
+    # =================================================================================
 
     def _on_confirm_mapping(self, idx):
+        """Create and validate column mappings for a given test.
+
+        Args:
+            idx (int): Index of the test being mapped.
+
+        Returns:
+            Callable: Callback used by the confirm button.
+        """
         def callback(b):
             w = self.file_uploads[idx]
             out_local = w["out_local"]
@@ -372,11 +405,11 @@ class Modulo2Importacao:
                 clear_output()
                 df = self.dfs_ensaios[idx]
                 if df is None:
-                    exibir_erro(f"Teste {idx+1}: DataFrame está vazio.")
+                    exibir_erro(f"Teste {idx + 1}: DataFrame está vazio.")
                     return
 
                 dds = w["mapping_dds"]
-                rename_dict = {dd.description.strip(): dd.value for dd in dds if dd.value != 'ignore'}
+                rename_dict = {dd.description.strip(): dd.value for dd in dds if dd.value != "ignore"}
 
                 df_temp = df[[col for col in rename_dict]].copy()
                 df_temp.rename(columns=rename_dict, inplace=True)
@@ -385,64 +418,72 @@ class Modulo2Importacao:
                 def get_single_column_by_prefix(df_in, prefix):
                     matching_cols = [col for col in df_in.columns if col.startswith(prefix)]
                     if len(matching_cols) > 1:
-                        exibir_erro(f"Mapeamento ambíguo: {len(matching_cols)} colunas mapeadas como '{prefix}*'. Mapeie apenas uma.")
+                        exibir_erro(
+                            f"Mapeamento ambíguo: {len(matching_cols)} colunas mapeadas como '{prefix}*'. Mapeie apenas uma."
+                        )
                         return None, True
                     return (matching_cols[0] if matching_cols else None), False
 
                 is_error = False
-                time_s_col, error = get_single_column_by_prefix(df_temp, 'Time_s')
+                time_s_col, error = get_single_column_by_prefix(df_temp, "Time_s")
                 is_error |= error
-                time_min_col, error = get_single_column_by_prefix(df_temp, 'Time_min')
+                time_min_col, error = get_single_column_by_prefix(df_temp, "Time_min")
                 is_error |= error
-                time_h_col, error = get_single_column_by_prefix(df_temp, 'Time_h')
+                time_h_col, error = get_single_column_by_prefix(df_temp, "Time_h")
                 is_error |= error
 
-                if is_error: return
+                if is_error:
+                    return
 
                 if time_s_col:
                     exibir_mensagem("Coluna 'Time_s' encontrada.")
                 elif time_min_col:
                     exibir_mensagem(f"Convertendo '{time_min_col}' para segundos...")
-                    df_temp['Time_s'] = df_temp[time_min_col] * 60.0
+                    df_temp["Time_s"] = df_temp[time_min_col] * 60.0
                 elif time_h_col:
                     exibir_mensagem(f"Convertendo '{time_h_col}' para segundos...")
-                    df_temp['Time_s'] = df_temp[time_h_col] * 3600.0
+                    df_temp["Time_s"] = df_temp[time_h_col] * 3600.0
 
                 # --- Validação de colunas ---
                 missing = []
-                if not any(c.startswith('Time_s') for c in df_temp.columns): missing.append('Tempo')
-                if not any(c.startswith('Temperature_C') for c in df_temp.columns): missing.append('Temperatura')
-                if not any(c.startswith('DensidadePct') or c.startswith('Retracao') for c in df_temp.columns):
+                if not any(c.startswith("Time_s") for c in df_temp.columns):
+                    missing.append("Tempo")
+                if not any(c.startswith("Temperature_C") for c in df_temp.columns):
+                    missing.append("Temperatura")
+                if not any(c.startswith("DensidadePct") or c.startswith("Retracao") for c in df_temp.columns):
                     missing.append("Densidade ou Retração")
 
                 if missing:
-                    exibir_erro(f"Teste {idx+1}: Colunas obrigatórias faltantes: {', '.join(missing)}.")
+                    exibir_erro(f"Teste {idx + 1}: Colunas obrigatórias faltantes: {', '.join(missing)}.")
                     return
 
                 # =================================================================
                 # LINHA CRÍTICA ADICIONADA AQUI
                 # Adiciona o sufixo do ensaio a TODAS as colunas ANTES de salvar.
                 # =================================================================
-                df_temp.columns = [add_suffix_once(col, f"_e{idx+1}") for col in df_temp.columns]
+                df_temp.columns = [add_suffix_once(col, f"_e{idx + 1}") for col in df_temp.columns]
 
                 # Agora o DataFrame é salvo com os nomes corretos (ex: RetracaoPct_e1)
                 self.dfs_ensaios[idx] = df_temp
 
-                exibir_mensagem(f"Teste {idx+1}: Mapeamento completo. Colunas Finais: {df_temp.columns.tolist()}")
+                exibir_mensagem(f"Teste {idx + 1}: Mapeamento completo. Colunas Finais: {df_temp.columns.tolist()}")
 
-                if not hasattr(self, 'history'): self.history = DataHistory()
-                self.history.push(self.dfs_ensaios[idx], module_name=f"Module 2: Mapping Test {idx+1}")
+                if not hasattr(self, "history"):
+                    self.history = DataHistory()
+                self.history.push(self.dfs_ensaios[idx], module_name=f"Module 2: Mapping Test {idx + 1}")
+
         return callback
 
-# =================================================================================
-# MÉTODO CORRIGIDO para a classe Modulo2Importacao
-# =================================================================================
+    # =================================================================================
+    # MÉTODO CORRIGIDO para a classe Modulo2Importacao
+    # =================================================================================
 
     def _on_convert(self, idx):
         """
         Callback para converter os dados de retração em densidade para o ensaio idx.
         Versão corrigida para procurar os nomes de coluna com o sufixo do ensaio.
         """
+
         def callback(b):
             w = self.file_uploads[idx]
             out_local = w["out_local"]
@@ -451,7 +492,7 @@ class Modulo2Importacao:
             with out_local:
                 clear_output()
                 if df is None or df.empty:
-                    exibir_erro(f"Ensaio {idx+1}: DF vazio, não posso converter.")
+                    exibir_erro(f"Ensaio {idx + 1}: DF vazio, não posso converter.")
                     return
 
                 conv = w["conv_params"]
@@ -460,10 +501,10 @@ class Modulo2Importacao:
                 lo = conv["tamanho_inicial"].value
 
                 # Nome da coluna de densidade que queremos criar
-                final_dens_col = f'DensidadePct_e{idx+1}'
+                final_dens_col = f"DensidadePct_e{idx + 1}"
 
                 if final_dens_col in df.columns:
-                    exibir_mensagem(f"Ensaio {idx+1}: Coluna '{final_dens_col}' já existe. Conversão não necessária.")
+                    exibir_mensagem(f"Ensaio {idx + 1}: Coluna '{final_dens_col}' já existe. Conversão não necessária.")
                     return
 
                 df_temp = df.copy()
@@ -472,31 +513,33 @@ class Modulo2Importacao:
                     # --- LÓGICA DE CONVERSÃO CORRIGIDA ---
                     # Para cada tipo de retração, procuramos pelo nome da coluna JÁ COM O SUFIXO
 
-                    col_retracao_rel = f'RetracaoRel_e{idx+1}'
-                    col_retracao_pct = f'RetracaoPct_e{idx+1}'
-                    col_retracao_abs = f'RetracaoAbs_e{idx+1}'
+                    col_retracao_rel = f"RetracaoRel_e{idx + 1}"
+                    col_retracao_pct = f"RetracaoPct_e{idx + 1}"
+                    col_retracao_abs = f"RetracaoAbs_e{idx + 1}"
 
                     # Converte de Retração Relativa
                     if col_retracao_rel in df_temp.columns:
                         exibir_mensagem(f"Convertendo '{col_retracao_rel}'...")
-                        df_temp[final_dens_col] = di * (1 / (1 + df_temp[col_retracao_rel]))**3
-                        df_temp.drop(columns=[col_retracao_rel], inplace=True, errors='ignore')
+                        df_temp[final_dens_col] = di * (1 / (1 + df_temp[col_retracao_rel])) ** 3
+                        df_temp.drop(columns=[col_retracao_rel], inplace=True, errors="ignore")
 
                     # Converte de Retração Percentual
                     elif col_retracao_pct in df_temp.columns:
                         exibir_mensagem(f"Convertendo '{col_retracao_pct}'...")
-                        df_temp['RetracaoRel_temp'] = df_temp[col_retracao_pct] / 100.0
-                        df_temp[final_dens_col] = di * (1 / (1 + df_temp['RetracaoRel_temp']))**3
-                        df_temp.drop(columns=[col_retracao_pct, 'RetracaoRel_temp'], inplace=True, errors='ignore')
+                        df_temp["RetracaoRel_temp"] = df_temp[col_retracao_pct] / 100.0
+                        df_temp[final_dens_col] = di * (1 / (1 + df_temp["RetracaoRel_temp"])) ** 3
+                        df_temp.drop(columns=[col_retracao_pct, "RetracaoRel_temp"], inplace=True, errors="ignore")
 
                     # Converte de Retração Absoluta
                     elif col_retracao_abs in df_temp.columns:
                         exibir_mensagem(f"Convertendo '{col_retracao_abs}'...")
                         if lo <= 0:
-                            raise ValueError("Tamanho Inicial (lo) deve ser maior que zero para converter Retração Absoluta.")
-                        df_temp['RetracaoRel_temp'] = df_temp[col_retracao_abs] / lo
-                        df_temp[final_dens_col] = di * (1 / (1 + df_temp['RetracaoRel_temp']))**3
-                        df_temp.drop(columns=[col_retracao_abs, 'RetracaoRel_temp'], inplace=True, errors='ignore')
+                            raise ValueError(
+                                "Tamanho Inicial (lo) deve ser maior que zero para converter Retração Absoluta."
+                            )
+                        df_temp["RetracaoRel_temp"] = df_temp[col_retracao_abs] / lo
+                        df_temp[final_dens_col] = di * (1 / (1 + df_temp["RetracaoRel_temp"])) ** 3
+                        df_temp.drop(columns=[col_retracao_abs, "RetracaoRel_temp"], inplace=True, errors="ignore")
 
                     # Se após todas as verificações, a coluna de densidade não foi criada, então há um erro.
                     if final_dens_col not in df_temp.columns:
@@ -506,21 +549,26 @@ class Modulo2Importacao:
                     curr_min = df_temp[final_dens_col].min()
                     curr_max = df_temp[final_dens_col].max()
                     if curr_max > curr_min:
-                        df_temp[final_dens_col] = di + (df_temp[final_dens_col] - curr_min) * (df_final - di) / (curr_max - curr_min)
-                    else: # Caso a densidade seja constante
+                        df_temp[final_dens_col] = di + (df_temp[final_dens_col] - curr_min) * (df_final - di) / (
+                            curr_max - curr_min
+                        )
+                    else:  # Caso a densidade seja constante
                         df_temp[final_dens_col] = di
 
                     # Atualiza o DataFrame do ensaio com os dados convertidos
                     self.dfs_ensaios[idx] = df_temp
-                    exibir_mensagem(f"Ensaio {idx+1}: Conversão concluída. Colunas finais: {df_temp.columns.tolist()}")
+                    exibir_mensagem(
+                        f"Ensaio {idx + 1}: Conversão concluída. Colunas finais: {df_temp.columns.tolist()}"
+                    )
 
                 except Exception as e:
-                    exibir_erro(f"Ensaio {idx+1}: Erro na conversão - {e}")
+                    exibir_erro(f"Ensaio {idx + 1}: Erro na conversão - {e}")
 
         return callback
 
     def get_dfs(self):
-        return self.dfs_ensaios[:self.n_ensaios]
+        return self.dfs_ensaios[: self.n_ensaios]
+
 
 # modulo3_filtrorecorte.py
 
@@ -543,8 +591,6 @@ from IPython.display import display, clear_output
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
-
-
 
 
 class Modulo3Recorte:
@@ -585,14 +631,16 @@ class Modulo3Recorte:
         # Usa Accordion para exibir cada ensaio
         self.tabs = widgets.Accordion(children=children_panels)
         for i in range(self.n_ensaios):
-            self.tabs.set_title(i, f"Ensaio {i+1}")
+            self.tabs.set_title(i, f"Ensaio {i + 1}")
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Módulo 3 - Recorte e Filtragem</h3>"),
-            widgets.HTML("Ajuste de tempo, exibição de curvas, corte de intervalo e filtragem/interpolação."),
-            self.tabs,
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Módulo 3 - Recorte e Filtragem</h3>"),
+                widgets.HTML("Ajuste de tempo, exibição de curvas, corte de intervalo e filtragem/interpolação."),
+                self.tabs,
+                self.out,
+            ]
+        )
 
     def _build_ensaio_panel(self, idx):
         """
@@ -613,38 +661,31 @@ class Modulo3Recorte:
 
         # 1) Radio: Zerar Tempo
         radio_zerar = widgets.RadioButtons(
-            options=[("Não Zerar", "nao"), ("Zerar Tempo", "sim")],
-            description="Zerar Tempo?",
-            value="nao"
+            options=[("Não Zerar", "nao"), ("Zerar Tempo", "sim")], description="Zerar Tempo?", value="nao"
         )
-        btn_aplicar_zerar = widgets.Button(description="Aplicar Ajuste Tempo", button_style='warning')
+        btn_aplicar_zerar = widgets.Button(description="Aplicar Ajuste Tempo", button_style="warning")
 
         # 2) Slider de Corte (Time_s)
         tmin, tmax = self._get_time_range(idx)
         slider_cut = widgets.FloatRangeSlider(
-            value=(tmin, tmax),
-            min=tmin,
-            max=tmax,
-            step=1.0,
-            description='Corte Tempo(s)'
+            value=(tmin, tmax), min=tmin, max=tmax, step=1.0, description="Corte Tempo(s)"
         )
-        btn_cut = widgets.Button(description="Aplicar Corte", button_style='warning')
+        btn_cut = widgets.Button(description="Aplicar Corte", button_style="warning")
 
         # 3) Botão Plot
-        btn_plot = widgets.Button(description="Exibir Curvas", button_style='info')
+        btn_plot = widgets.Button(description="Exibir Curvas", button_style="info")
 
         # 3b) Botão Exportar Excel
-        btn_export = widgets.Button(description="Exportar Excel", button_style='info')
+        btn_export = widgets.Button(description="Exportar Excel", button_style="info")
 
         def on_export(b):
             df_to_export = self.dfs_ensaios[idx]
-            with vbox_out:               # vbox_out é o Output deste ensaio
+            with vbox_out:  # vbox_out é o Output deste ensaio
                 clear_output()
                 if df_to_export is None or df_to_export.empty:
-                    exibir_erro(f"Ensaio {idx+1}: DF vazio, nada a exportar.")
+                    exibir_erro(f"Ensaio {idx + 1}: DF vazio, nada a exportar.")
                     return
-                link = gerar_link_download(df_to_export,
-                                          nome_arquivo=f"Ensaio_{idx+1}_Ajustado.xlsx")
+                link = gerar_link_download(df_to_export, nome_arquivo=f"Ensaio_{idx + 1}_Ajustado.xlsx")
                 display(link)
 
         btn_export.on_click(on_export)
@@ -652,24 +693,24 @@ class Modulo3Recorte:
         # 4) Filtro/Interpol
         filter_dropdown = widgets.Dropdown(
             options=[
-                ('Nenhum', 'none'),
-                ('Orlandini-Araujo', 'orlandini'),
-                ('Savitzky-Golay', 'savgol'),
-                ('Interpolação Linear', 'linear'),
-                ('Interpolação Cúbica', 'cubic')
+                ("Nenhum", "none"),
+                ("Orlandini-Araujo", "orlandini"),
+                ("Savitzky-Golay", "savgol"),
+                ("Interpolação Linear", "linear"),
+                ("Interpolação Cúbica", "cubic"),
             ],
-            value='none',
-            description='Filtro:'
+            value="none",
+            description="Filtro:",
         )
         bin_size_widget = widgets.FloatText(value=10.0, description="Bin(s):")
-        bin_size_widget.layout.display = 'none'
+        bin_size_widget.layout.display = "none"
         n_points_widget = widgets.IntText(value=200, description="N Points:")
-        n_points_widget.layout.display = 'none'
+        n_points_widget.layout.display = "none"
 
         # Observa mudança no dropdown
-        filter_dropdown.observe(lambda c: self._on_filter_change(c, bin_size_widget, n_points_widget), 'value')
+        filter_dropdown.observe(lambda c: self._on_filter_change(c, bin_size_widget, n_points_widget), "value")
 
-        btn_filter = widgets.Button(description="Aplicar Filtro/Interp.", button_style='warning')
+        btn_filter = widgets.Button(description="Aplicar Filtro/Interp.", button_style="warning")
 
         # =============== Callbacks ===============
 
@@ -679,22 +720,22 @@ class Modulo3Recorte:
             dfi = self.dfs_ensaios[idx]
             if dfi is None or dfi.empty:
                 with vbox_out:
-                    exibir_erro(f"Ensaio {idx+1}: DF vazio, não posso ajustar tempo.")
+                    exibir_erro(f"Ensaio {idx + 1}: DF vazio, não posso ajustar tempo.")
                 return
 
             # Encontra a coluna de tempo (base "Time_s")
-            time_cols = [col for col in dfi.columns if col.startswith('Time_s')]
+            time_cols = [col for col in dfi.columns if col.startswith("Time_s")]
             if not time_cols:
-                exibir_erro(f"Ensaio {idx+1}: Coluna de tempo não encontrada.")
+                exibir_erro(f"Ensaio {idx + 1}: Coluna de tempo não encontrada.")
                 return
             time_col = time_cols[0]
 
             if radio_zerar.value == "sim":
                 min_t_df = dfi[time_col].min()
                 self.dfs_ensaios[idx][time_col] = dfi[time_col] - min_t_df
-                exibir_mensagem(f"Ensaio {idx+1}: Tempo zerado (subtraído {min_t_df}).")
+                exibir_mensagem(f"Ensaio {idx + 1}: Tempo zerado (subtraído {min_t_df}).")
             else:
-                exibir_mensagem(f"Ensaio {idx+1}: Tempo mantido (não zerado).")
+                exibir_mensagem(f"Ensaio {idx + 1}: Tempo mantido (não zerado).")
 
             # Reordena e atualiza o slider (adaptando para usar o valor da coluna encontrada)
             self.dfs_ensaios[idx].sort_values(time_col, inplace=True)
@@ -702,10 +743,7 @@ class Modulo3Recorte:
             self._update_slider_range(idx, slider_cut)
 
             # Salva o estado após o ajuste de tempo
-            self.history.push(self.dfs_ensaios[idx], module_name=f"Module 3: Ajuste de Tempo Teste {idx+1}")
-
-
-
+            self.history.push(self.dfs_ensaios[idx], module_name=f"Module 3: Ajuste de Tempo Teste {idx + 1}")
 
         btn_aplicar_zerar.on_click(on_aplicar_zerar)
 
@@ -714,12 +752,12 @@ class Modulo3Recorte:
                 clear_output()
             dfi = self.dfs_ensaios[idx]
             if dfi is None or dfi.empty:
-                exibir_erro(f"Ensaio {idx+1}: DF vazio, não posso cortar.")
+                exibir_erro(f"Ensaio {idx + 1}: DF vazio, não posso cortar.")
                 return
             # Busca a coluna de tempo
-            time_cols = [col for col in dfi.columns if col.startswith('Time_s')]
+            time_cols = [col for col in dfi.columns if col.startswith("Time_s")]
             if not time_cols:
-                exibir_erro(f"Ensaio {idx+1}: Coluna de tempo não encontrada.")
+                exibir_erro(f"Ensaio {idx + 1}: Coluna de tempo não encontrada.")
                 return
             time_col = time_cols[0]
             min_t, max_t = slider_cut.value
@@ -727,18 +765,16 @@ class Modulo3Recorte:
             kept = len(df_cut)
             total = len(dfi)
             if kept < 1:
-                exibir_erro(f"Ensaio {idx+1}: Corte resultou em DF vazio. Intervalo [{min_t}, {max_t}].")
+                exibir_erro(f"Ensaio {idx + 1}: Corte resultou em DF vazio. Intervalo [{min_t}, {max_t}].")
                 return
             df_cut.sort_values(time_col, inplace=True)
             df_cut.reset_index(drop=True, inplace=True)
             self.dfs_ensaios[idx] = df_cut
-            exibir_mensagem(f"Ensaio {idx+1}: Corte [{min_t}, {max_t}] (s). Mantidos {kept} de {total} pontos.")
+            exibir_mensagem(f"Ensaio {idx + 1}: Corte [{min_t}, {max_t}] (s). Mantidos {kept} de {total} pontos.")
             self._update_slider_range(idx, slider_cut)
 
             # Salva estado após corte
-            self.history.push(self.dfs_ensaios[idx], module_name=f"Module 3: Corte de Intervalo Test {idx+1}")
-
-
+            self.history.push(self.dfs_ensaios[idx], module_name=f"Module 3: Corte de Intervalo Test {idx + 1}")
 
         btn_cut.on_click(on_cut)
 
@@ -747,39 +783,42 @@ class Modulo3Recorte:
                 clear_output()
             dfi = self.dfs_ensaios[idx]
             if dfi is None or dfi.empty:
-                exibir_erro(f"Ensaio {idx+1}: DF vazio, não posso proceder.")
+                exibir_erro(f"Ensaio {idx + 1}: DF vazio, não posso proceder.")
                 return
 
             # Busca as colunas obrigatórias dinamicamente
-            time_col = next((col for col in dfi.columns if col.startswith('Time_s')), None)
-            temp_col = next((col for col in dfi.columns if col.startswith('Temperature_C')), None)
-            dens_col = next((col for col in dfi.columns if col.startswith('DensidadePct')), None)
+            time_col = next((col for col in dfi.columns if col.startswith("Time_s")), None)
+            temp_col = next((col for col in dfi.columns if col.startswith("Temperature_C")), None)
+            dens_col = next((col for col in dfi.columns if col.startswith("DensidadePct")), None)
 
             if not (time_col and temp_col and dens_col):
-                missing = [c for c in ['Time_s', 'Temperature_C', 'DensidadePct'] if next((col for col in dfi.columns if col.startswith(c)), None) is None]
-                exibir_erro(f"Ensaio {idx+1}: Faltam as colunas obrigatórias: {missing}")
+                missing = [
+                    c
+                    for c in ["Time_s", "Temperature_C", "DensidadePct"]
+                    if next((col for col in dfi.columns if col.startswith(c)), None) is None
+                ]
+                exibir_erro(f"Ensaio {idx + 1}: Faltam as colunas obrigatórias: {missing}")
                 return
 
             # Plot usando as colunas encontradas
             with fig_out:
-                fig, axs = plt.subplots(1, 3, figsize=(15,4))
-                fig.suptitle(f"Ensaio {idx+1} - Visualização")
-                axs[0].plot(dfi[time_col], dfi[dens_col], 'o-')
+                fig, axs = plt.subplots(1, 3, figsize=(15, 4))
+                fig.suptitle(f"Ensaio {idx + 1} - Visualização")
+                axs[0].plot(dfi[time_col], dfi[dens_col], "o-")
                 axs[0].set_xlabel("Tempo (s)")
                 axs[0].set_ylabel("Densidade (%)")
 
-                axs[1].plot(dfi[temp_col], dfi[dens_col], 'o-', color='red')
+                axs[1].plot(dfi[temp_col], dfi[dens_col], "o-", color="red")
                 axs[1].set_xlabel("Temperatura (°C)")
                 axs[1].set_ylabel("Densidade (%)")
 
-                axs[2].plot(dfi[time_col], dfi[temp_col], 'o-', color='green')
+                axs[2].plot(dfi[time_col], dfi[temp_col], "o-", color="green")
                 axs[2].set_xlabel("Tempo (s)")
                 axs[2].set_ylabel("Temperatura (°C)")
 
                 plt.tight_layout()
                 display(fig)
                 plt.close(fig)
-
 
         btn_plot.on_click(on_plot)
 
@@ -789,13 +828,13 @@ class Modulo3Recorte:
 
             dfi = self.dfs_ensaios[idx]
             if dfi is None or dfi.empty:
-                exibir_erro(f"Ensaio {idx+1}: DF vazio, não posso filtrar/interpolar.")
+                exibir_erro(f"Ensaio {idx + 1}: DF vazio, não posso filtrar/interpolar.")
                 return
 
             # Procura a coluna de densidade
-            dens_col = next((col for col in dfi.columns if col.startswith('DensidadePct')), None)
+            dens_col = next((col for col in dfi.columns if col.startswith("DensidadePct")), None)
             if not dens_col:
-                exibir_erro(f"Ensaio {idx+1}: Falta 'DensidadePct'. Não posso filtrar.")
+                exibir_erro(f"Ensaio {idx + 1}: Falta 'DensidadePct'. Não posso filtrar.")
                 return
 
             dfi = dfi.copy()
@@ -804,45 +843,47 @@ class Modulo3Recorte:
             dfi = dfi[(dfi[dens_col] >= 0) & (dfi[dens_col] <= 100)].copy()
             after = len(dfi)
             removed = before - after
-            exibir_mensagem(f"Ensaio {idx+1}: Removidos {removed} pontos fora de [0..100]%.")
+            exibir_mensagem(f"Ensaio {idx + 1}: Removidos {removed} pontos fora de [0..100]%.")
 
             if len(dfi) < 2:
-                exibir_erro(f"Ensaio {idx+1}: DF insuficiente após remoção. Tamanho={len(dfi)}.")
+                exibir_erro(f"Ensaio {idx + 1}: DF insuficiente após remoção. Tamanho={len(dfi)}.")
                 return
 
             try:
-                if method == 'none':
-                    exibir_mensagem(f"Ensaio {idx+1}: Nenhum filtro aplicado.")
-                elif method == 'orlandini':
+                if method == "none":
+                    exibir_mensagem(f"Ensaio {idx + 1}: Nenhum filtro aplicado.")
+                elif method == "orlandini":
                     bin_size = bin_size_widget.value
                     if len(dfi) < bin_size:
-                        exibir_erro(f"Ensaio {idx+1}: Número de pontos ({len(dfi)}) menor que o tamanho do bin ({bin_size}).")
+                        exibir_erro(
+                            f"Ensaio {idx + 1}: Número de pontos ({len(dfi)}) menor que o tamanho do bin ({bin_size})."
+                        )
                         return
                     dfi = orlandini_araujo_filter(dfi, bin_size=bin_size)
-                    exibir_mensagem(f"Ensaio {idx+1}: Filtro Orlandini (bin={bin_size}) aplicado.")
-                elif method == 'savgol':
+                    exibir_mensagem(f"Ensaio {idx + 1}: Filtro Orlandini (bin={bin_size}) aplicado.")
+                elif method == "savgol":
                     if len(dfi) < 5:
-                        exibir_erro(f"Ensaio {idx+1}: Poucos pontos p/ Savitzky-Golay.")
+                        exibir_erro(f"Ensaio {idx + 1}: Poucos pontos p/ Savitzky-Golay.")
                         return
-                    w = min(11, (len(dfi)//2)*2+1)
+                    w = min(11, (len(dfi) // 2) * 2 + 1)
                     dfi[dens_col] = savgol_filter(dfi[dens_col], w, 2)
-                    exibir_mensagem(f"Ensaio {idx+1}: Savitzky-Golay aplicado (window={w}).")
-                elif method in ('linear','cubic'):
+                    exibir_mensagem(f"Ensaio {idx + 1}: Savitzky-Golay aplicado (window={w}).")
+                elif method in ("linear", "cubic"):
                     # Atualize o drop_duplicates para usar a coluna de tempo dinamicamente
-                    time_col = next((col for col in dfi.columns if col.startswith('Time_s')), None)
+                    time_col = next((col for col in dfi.columns if col.startswith("Time_s")), None)
                     if not time_col:
-                        exibir_erro(f"Ensaio {idx+1}: Coluna de tempo não encontrada para interpolar.")
+                        exibir_erro(f"Ensaio {idx + 1}: Coluna de tempo não encontrada para interpolar.")
                         return
                     dfi.drop_duplicates(subset=[time_col], inplace=True)
                     if len(dfi) < 2:
-                        exibir_erro(f"Ensaio {idx+1}: Após remover duplicatas, <2 pontos p/ interpolar.")
+                        exibir_erro(f"Ensaio {idx + 1}: Após remover duplicatas, <2 pontos p/ interpolar.")
                         return
                     dfi.sort_values(time_col, inplace=True)
                     n_points = n_points_widget.value
-                    kind = 'linear' if method == 'linear' else 'cubic'
+                    kind = "linear" if method == "linear" else "cubic"
                     f_dens = interp1d(dfi[time_col], dfi[dens_col], kind=kind, fill_value="extrapolate")
                     # Se houver coluna de temperatura, também interpolar
-                    temp_col = next((col for col in dfi.columns if col.startswith('Temperature_C')), None)
+                    temp_col = next((col for col in dfi.columns if col.startswith("Temperature_C")), None)
                     f_temp = None
                     if temp_col:
                         f_temp = interp1d(dfi[time_col], dfi[temp_col], kind=kind, fill_value="extrapolate")
@@ -854,46 +895,43 @@ class Modulo3Recorte:
                         df_new[temp_col] = f_temp(new_times)
 
                     dfi = df_new
-                    exibir_mensagem(f"Ensaio {idx+1}: Interpolação {kind} gerou {n_points} pontos.")
+                    exibir_mensagem(f"Ensaio {idx + 1}: Interpolação {kind} gerou {n_points} pontos.")
                 else:
-                    exibir_erro(f"Ensaio {idx+1}: Método de filtro desconhecido ({method}).")
+                    exibir_erro(f"Ensaio {idx + 1}: Método de filtro desconhecido ({method}).")
 
                 dfi.sort_values(time_col, inplace=True)
                 dfi.reset_index(drop=True, inplace=True)
                 self.dfs_ensaios[idx] = dfi
 
-                exibir_mensagem(f"Ensaio {idx+1}: Filtro/Interp '{method}' finalizado. Tamanho DF={len(dfi)}.")
+                exibir_mensagem(f"Ensaio {idx + 1}: Filtro/Interp '{method}' finalizado. Tamanho DF={len(dfi)}.")
                 self._update_slider_range(idx, slider_cut)
                 # Salva estado após filtro/interpolação
-                self.history.push(self.dfs_ensaios[idx], module_name=f"Module 3: Filtro/Interpolação Test {idx+1}")
+                self.history.push(self.dfs_ensaios[idx], module_name=f"Module 3: Filtro/Interpolação Test {idx + 1}")
 
             except Exception as e:
-                exibir_erro(f"Ensaio {idx+1}: Erro ao filtrar/interpolar - {e}")
-
+                exibir_erro(f"Ensaio {idx + 1}: Erro ao filtrar/interpolar - {e}")
 
         btn_filter.on_click(on_apply_filter)
 
         # =============== Layout em duas colunas ===============
-        panel_left = widgets.VBox([
-            widgets.HTML(f"<b>Ajuste de Tempo (Ensaio {idx+1})</b>"),
-            radio_zerar,
-            btn_aplicar_zerar,
-
-            widgets.HTML("<b>Corte de Intervalo</b>"),
-            slider_cut,
-            btn_cut,
-
-            widgets.HTML("<b>Filtragem / Interpolação</b>"),
-            filter_dropdown,
-            bin_size_widget,
-            n_points_widget,
-            btn_filter,
-
-            widgets.HTML("<b>Exibir Curvas / Exportar</b>"),
-            widgets.HBox([btn_plot, btn_export]),
-
-            vbox_out  # logs
-        ])
+        panel_left = widgets.VBox(
+            [
+                widgets.HTML(f"<b>Ajuste de Tempo (Ensaio {idx + 1})</b>"),
+                radio_zerar,
+                btn_aplicar_zerar,
+                widgets.HTML("<b>Corte de Intervalo</b>"),
+                slider_cut,
+                btn_cut,
+                widgets.HTML("<b>Filtragem / Interpolação</b>"),
+                filter_dropdown,
+                bin_size_widget,
+                n_points_widget,
+                btn_filter,
+                widgets.HTML("<b>Exibir Curvas / Exportar</b>"),
+                widgets.HBox([btn_plot, btn_export]),
+                vbox_out,  # logs
+            ]
+        )
 
         panel_right = widgets.VBox([fig_out])  # apenas a saída de figura
 
@@ -905,27 +943,26 @@ class Modulo3Recorte:
         """
         Ajusta exibição de bin_size_widget e n_points_widget conforme método de filtragem.
         """
-        new_val = change['new']
-        if new_val == 'orlandini':
-            bin_size_widget.layout.display = ''
-            n_points_widget.layout.display = 'none'
-        elif new_val in ('linear','cubic'):
-            bin_size_widget.layout.display = 'none'
-            n_points_widget.layout.display = ''
+        new_val = change["new"]
+        if new_val == "orlandini":
+            bin_size_widget.layout.display = ""
+            n_points_widget.layout.display = "none"
+        elif new_val in ("linear", "cubic"):
+            bin_size_widget.layout.display = "none"
+            n_points_widget.layout.display = ""
         else:
-            bin_size_widget.layout.display = 'none'
-            n_points_widget.layout.display = 'none'
+            bin_size_widget.layout.display = "none"
+            n_points_widget.layout.display = "none"
 
     def _get_time_range(self, idx):
         dfi = self.dfs_ensaios[idx]
         # Procura a coluna que inicia com "Time_s" (independente do sufixo)
-        time_cols = [col for col in dfi.columns if col.startswith('Time_s')]
+        time_cols = [col for col in dfi.columns if col.startswith("Time_s")]
         if dfi is not None and not dfi.empty and time_cols:
             time_col = time_cols[0]  # assume que há apenas uma coluna de tempo por ensaio
             return float(dfi[time_col].min()), float(dfi[time_col].max())
         else:
             return 0.0, 1.0
-
 
     def _update_slider_range(self, idx, slider_cut):
         """
@@ -937,7 +974,7 @@ class Modulo3Recorte:
         slider_cut.value = (tmin, tmax)
 
     def display(self):
-        if hasattr(self, 'main_ui'):
+        if hasattr(self, "main_ui"):
             display(self.main_ui)
         else:
             display(widgets.HTML("<b>Nenhuma interface disponível (n_ensaios=0).</b>"))
@@ -952,6 +989,7 @@ def iniciar_modulo3(dfs_ensaios):
     """
     mod3 = Modulo3Recorte(dfs_ensaios)
     return mod3
+
 
 # modulo_roteadormetodo.py
 # Exemplo de célula final do seu notebook
@@ -978,17 +1016,19 @@ method_radio = widgets.RadioButtons(
     options=["LogTheta ( Curvas Mestras )", "Curvas de Arrhenius "],
     value="LogTheta ( Curvas Mestras )",
     description="Method:",
-    style={'description_width': 'initial'}
+    style={"description_width": "initial"},
 )
 
 
 # Botão para prosseguir
-proceed_button = widgets.Button(description="Realizar Ação", button_style='success')
+proceed_button = widgets.Button(description="Realizar Ação", button_style="success")
 
 # Área de saída para logs
 out = widgets.Output()
 
+
 def on_proceed_clicked(b):
+    """Handle the final method selection and hide the chooser UI."""
     with out:
         clear_output()
         choice = method_radio.value
@@ -1001,18 +1041,13 @@ def on_proceed_clicked(b):
             # Chame aqui o(s) módulo(s) correspondentes ao Arrhenius
             # Por exemplo: iniciar_modulo_arrhenius()
     # Opcional: Oculta a interface de escolha após prosseguir
-    ui.layout.display = 'none'
+    ui.layout.display = "none"
 
 
 proceed_button.on_click(on_proceed_clicked)
 
 # Monta a interface final
-ui = widgets.VBox([
-    widgets.HTML(value=intro_text),
-    method_radio,
-    proceed_button,
-    out
-])
+ui = widgets.VBox([widgets.HTML(value=intro_text), method_radio, proceed_button, out])
 
 # modulo4_logtheta.py (VERSÃO FINAL SIMPLIFICADA)
 
@@ -1027,11 +1062,13 @@ from typing import List
 # from core import SinteringDataRecord
 # from modulo1_interface import EaSelectionWidget, exibir_mensagem, exibir_erro, ...
 
+
 class ModuloLogTheta:
     """
     Classe refatorada e simplificada para o cálculo de log(theta).
     Usa o widget reutilizável EaSelectionWidget para a definição das energias.
     """
+
     def __init__(self, dfs_ensaios):
         self.dfs_ensaios = [df for df in dfs_ensaios if df is not None and not df.empty]
         self.n_ensaios = len(self.dfs_ensaios)
@@ -1045,22 +1082,24 @@ class ModuloLogTheta:
 
     def _build_ui(self):
         # 2. A UI deste módulo agora é muito mais limpa
-        self.btn_calc_logtheta = widgets.Button(description="Calcular LogTheta", button_style='success')
+        self.btn_calc_logtheta = widgets.Button(description="Calcular LogTheta", button_style="success")
         self.btn_calc_logtheta.on_click(self._on_calc_logtheta)
 
-        self.btn_plot_curves = widgets.Button(description="Visualizar Curvas", button_style='warning')
+        self.btn_plot_curves = widgets.Button(description="Visualizar Curvas", button_style="warning")
         self.btn_plot_curves.on_click(self._on_plot_curves)
 
-        self.btn_export_logtheta = widgets.Button(description="Exportar Resultados", button_style='info')
+        self.btn_export_logtheta = widgets.Button(description="Exportar Resultados", button_style="info")
         self.btn_export_logtheta.on_click(self._on_export_logtheta)
 
-        self.ui = widgets.VBox([
-            widgets.HTML("<h3>Módulo 4: Cálculo de LogTheta</h3>"),
-            # 3. Apenas exibe a UI do widget seletor de Ea
-            self.ea_selector.ui,
-            widgets.HBox([self.btn_calc_logtheta, self.btn_plot_curves, self.btn_export_logtheta]),
-            self.out
-        ])
+        self.ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Módulo 4: Cálculo de LogTheta</h3>"),
+                # 3. Apenas exibe a UI do widget seletor de Ea
+                self.ea_selector.ui,
+                widgets.HBox([self.btn_calc_logtheta, self.btn_plot_curves, self.btn_export_logtheta]),
+                self.out,
+            ]
+        )
 
     def _on_calc_logtheta(self, b):
         with self.out:
@@ -1080,16 +1119,16 @@ class ModuloLogTheta:
         exibir_mensagem(f"Iniciando cálculo... Processando {len(eas)} energias de ativação.")
 
         for i, df_ensaio in enumerate(self.dfs_ensaios):
-            time_col = next((col for col in df_ensaio.columns if col.startswith('Time_s')), None)
-            temp_col = next((col for col in df_ensaio.columns if col.startswith('Temperature_C')), None)
-            dens_col = next((col for col in df_ensaio.columns if col.startswith('DensidadePct')), None)
+            time_col = next((col for col in df_ensaio.columns if col.startswith("Time_s")), None)
+            temp_col = next((col for col in df_ensaio.columns if col.startswith("Temperature_C")), None)
+            dens_col = next((col for col in df_ensaio.columns if col.startswith("DensidadePct")), None)
 
             if not (time_col and temp_col and dens_col):
-                exibir_erro(f"Ensaio {i+1}: Colunas essenciais não encontradas. Pulando.")
+                exibir_erro(f"Ensaio {i + 1}: Colunas essenciais não encontradas. Pulando.")
                 continue
 
             if df_ensaio[time_col].size < 2:
-                exibir_erro(f"Ensaio {i+1}: Dados insuficientes para integração. Pulando.")
+                exibir_erro(f"Ensaio {i + 1}: Dados insuficientes para integração. Pulando.")
                 continue
 
             T_k = df_ensaio[temp_col].values + 273.15
@@ -1100,27 +1139,20 @@ class ModuloLogTheta:
                     theta_inst = (1.0 / T_k) * np.exp(-Ea_j / (R * T_k))
                     integrated = cumtrapz(theta_inst, df_ensaio[time_col].values, initial=0)
 
-                    with np.errstate(divide='ignore', invalid='ignore'):
+                    with np.errstate(divide="ignore", invalid="ignore"):
                         log_integrated = np.log10(integrated)
 
                     log_integrated[~np.isfinite(log_integrated)] = np.nan
 
-                    df_record = pd.DataFrame({
-                        'logtheta': log_integrated,
-                        'valor': df_ensaio[dens_col].values
-                    })
+                    df_record = pd.DataFrame({"logtheta": log_integrated, "valor": df_ensaio[dens_col].values})
 
-                    record = SinteringDataRecord(
-                        ensaio_id=i, Ea=Ea_kj,
-                        tipo_dado_y='densidade_original', df=df_record
-                    )
+                    record = SinteringDataRecord(ensaio_id=i, Ea=Ea_kj, tipo_dado_y="densidade_original", df=df_record)
                     self.sintering_records.append(record)
 
                 except Exception as e:
-                    exibir_erro(f"Ensaio {i+1}: Falha ao calcular para Ea={Ea_kj:.2f}. Erro: {e}")
+                    exibir_erro(f"Ensaio {i + 1}: Falha ao calcular para Ea={Ea_kj:.2f}. Erro: {e}")
 
         exibir_mensagem(f"Cálculo concluído. {len(self.sintering_records)} SinteringDataRecord's foram gerados.")
-
 
     def _on_plot_curves(self, b):
         """
@@ -1135,6 +1167,7 @@ class ModuloLogTheta:
 
         # Agrupa os records por ensaio_id para plotar um gráfico por ensaio
         from collections import defaultdict
+
         records_por_ensaio = defaultdict(list)
         for rec in self.sintering_records:
             records_por_ensaio[rec.ensaio_id].append(rec)
@@ -1146,21 +1179,21 @@ class ModuloLogTheta:
             ax.set_ylabel("Densidade (%)")
 
             for rec in records:
-                df_plot = rec.df.dropna() # Remove pontos onde logtheta ou valor são NaN
+                df_plot = rec.df.dropna()  # Remove pontos onde logtheta ou valor são NaN
                 if len(df_plot) < 2:
                     continue
 
                 label = f"Ea={rec.Ea:.2f} kJ/mol"
-                ax.plot(df_plot['logtheta'], df_plot['valor'], 'o-', ms=3, label=label)
+                ax.plot(df_plot["logtheta"], df_plot["valor"], "o-", ms=3, label=label)
 
-            ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
             ax.grid(True)
             plt.tight_layout()
             plt.show()
 
         exibir_mensagem("Visualização concluída.")
 
-# Em ModuloLogTheta
+    # Em ModuloLogTheta
 
     def _on_export_logtheta(self, b):
         """
@@ -1201,6 +1234,7 @@ class ModuloLogTheta:
         """
         return self.sintering_records
 
+
 # modulo5_1_alinhamento.py (VERSÃO REFATORADA)
 
 import ipywidgets as widgets
@@ -1218,15 +1252,17 @@ from typing import List
 # Funções utilitárias (exibir_mensagem, exibir_erro, etc.)
 # ...
 
+
 class Modulo5_1Alinhamento:
     """
     Módulo refatorado para alinhar curvas de sinterização.
     Recebe uma lista de SinteringDataRecord e produz uma nova lista
     com os dados alinhados em um eixo comum (logtheta ou densidade).
     """
+
     def __init__(self, sintering_records: List[SinteringDataRecord]):
         # Filtra apenas os records de entrada relevantes ('densidade_original')
-        self.input_records = [rec for rec in sintering_records if rec.tipo_dado_y == 'densidade_original']
+        self.input_records = [rec for rec in sintering_records if rec.tipo_dado_y == "densidade_original"]
 
         # Armazena todos os records (incluindo os que não serão processados) para passar adiante
         self.all_input_records = sintering_records
@@ -1237,9 +1273,9 @@ class Modulo5_1Alinhamento:
         self.out = widgets.Output()
         self._build_ui()
 
-# ========================================================================
-# MÉTODO CORRIGIDO para a classe Modulo5_1Alinhamento
-# ========================================================================
+    # ========================================================================
+    # MÉTODO CORRIGIDO para a classe Modulo5_1Alinhamento
+    # ========================================================================
 
     def _build_ui(self):
         if not self.input_records:
@@ -1253,33 +1289,32 @@ class Modulo5_1Alinhamento:
 
         # 2. Usa textos mais curtos nas opções do RadioButtons
         self.radio_axis = widgets.RadioButtons(
-            options=[
-                ("Eixo comum de log(θ)", "logtheta"),
-                ("Eixo comum de Densidade", "dens")
-            ],
+            options=[("Eixo comum de log(θ)", "logtheta"), ("Eixo comum de Densidade", "dens")],
             value="dens",
             # A propriedade 'description' foi removida para evitar sobreposição
         )
 
         self.int_n_points = widgets.IntText(
-            value=200,
-            description="Nº de Pontos:",
-            tooltip="Número de pontos para a nova grade de interpolação."
+            value=200, description="Nº de Pontos:", tooltip="Número de pontos para a nova grade de interpolação."
         )
 
-        self.btn_apply = widgets.Button(description="Aplicar Alinhamento", button_style='success')
+        self.btn_apply = widgets.Button(description="Aplicar Alinhamento", button_style="success")
         self.btn_apply.on_click(self._on_apply_alignment)
 
         # 3. Monta o layout principal com o novo título e os botões
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Submódulo 5.1 – Alinhamento e Interpolação</h3>"),
-            widgets.HTML("<p>Selecione o eixo para criar uma grade comum e clique em 'Aplicar'. As curvas serão reamostradas nesta grade.</p>"),
-            axis_label, # Adiciona o título separado
-            self.radio_axis, # Adiciona os RadioButtons
-            self.int_n_points,
-            self.btn_apply,
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Submódulo 5.1 – Alinhamento e Interpolação</h3>"),
+                widgets.HTML(
+                    "<p>Selecione o eixo para criar uma grade comum e clique em 'Aplicar'. As curvas serão reamostradas nesta grade.</p>"
+                ),
+                axis_label,  # Adiciona o título separado
+                self.radio_axis,  # Adiciona os RadioButtons
+                self.int_n_points,
+                self.btn_apply,
+                self.out,
+            ]
+        )
 
     def display(self):
         display(self.main_ui)
@@ -1308,64 +1343,73 @@ class Modulo5_1Alinhamento:
             for rec_to_process in records_group:
                 df = rec_to_process.df.dropna().copy()
                 if len(df) < 2:
-                    exibir_erro(f"Ensaio {rec_to_process.ensaio_id+1}, Ea={Ea}: Pontos insuficientes (<2) após remover NaNs. Pulando.")
+                    exibir_erro(
+                        f"Ensaio {rec_to_process.ensaio_id + 1}, Ea={Ea}: Pontos insuficientes (<2) após remover NaNs. Pulando."
+                    )
                     continue
 
                 try:
                     if mode == "logtheta":
                         # Alinhar em um eixo comum de log(theta)
-                        df.sort_values('logtheta', inplace=True)
-                        x_axis = 'logtheta'
-                        y_axis = 'valor'
-                        x_label_aligned = 'logtheta_alinhado'
-                        y_label_aligned = 'densidade_alinhada'
+                        df.sort_values("logtheta", inplace=True)
+                        x_axis = "logtheta"
+                        y_axis = "valor"
+                        x_label_aligned = "logtheta_alinhado"
+                        y_label_aligned = "densidade_alinhada"
 
                     elif mode == "dens":
                         # Alinhar em um eixo comum de densidade
-                        df.sort_values('valor', inplace=True)
-                        x_axis = 'valor'
-                        y_axis = 'logtheta'
-                        x_label_aligned = 'densidade_alinhada'
-                        y_label_aligned = 'logtheta_alinhado'
+                        df.sort_values("valor", inplace=True)
+                        x_axis = "valor"
+                        y_axis = "logtheta"
+                        x_label_aligned = "densidade_alinhada"
+                        y_label_aligned = "logtheta_alinhado"
 
                     else:
-                        continue # Modo inválido
+                        continue  # Modo inválido
 
                     # Determina a faixa para a nova grade
                     x_min, x_max = df[x_axis].min(), df[x_axis].max()
                     if np.isclose(x_min, x_max):
-                        exibir_erro(f"Ensaio {rec_to_process.ensaio_id+1}, Ea={Ea}: Eixo '{x_axis}' tem valores constantes. Pulando alinhamento.")
+                        exibir_erro(
+                            f"Ensaio {rec_to_process.ensaio_id + 1}, Ea={Ea}: Eixo '{x_axis}' tem valores constantes. Pulando alinhamento."
+                        )
                         continue
 
                     # Cria a nova grade e o interpolador
                     new_x_grid = np.linspace(x_min, x_max, n_points)
-                    interpolator = interp1d(df[x_axis], df[y_axis], kind='linear', bounds_error=False, fill_value=np.nan)
+                    interpolator = interp1d(
+                        df[x_axis], df[y_axis], kind="linear", bounds_error=False, fill_value=np.nan
+                    )
                     new_y_values = interpolator(new_x_grid)
 
                     # Cria o novo DataFrame com dados alinhados e nomes de coluna padronizados
-                    df_aligned_result = pd.DataFrame({
-                        x_label_aligned: new_x_grid,
-                        y_label_aligned: new_y_values
-                    }).dropna()
+                    df_aligned_result = pd.DataFrame(
+                        {x_label_aligned: new_x_grid, y_label_aligned: new_y_values}
+                    ).dropna()
 
                     if df_aligned_result.empty:
-                        exibir_erro(f"Ensaio {rec_to_process.ensaio_id+1}, Ea={Ea}: Interpolação resultou em DataFrame vazio. Verifique os dados de entrada.")
+                        exibir_erro(
+                            f"Ensaio {rec_to_process.ensaio_id + 1}, Ea={Ea}: Interpolação resultou em DataFrame vazio. Verifique os dados de entrada."
+                        )
                         continue
 
                     # Cria o novo SinteringDataRecord com o resultado
                     aligned_rec = SinteringDataRecord(
                         ensaio_id=rec_to_process.ensaio_id,
                         Ea=Ea,
-                        tipo_dado_y='dados_alinhados', # Novo tipo de dado padronizado
+                        tipo_dado_y="dados_alinhados",  # Novo tipo de dado padronizado
                         df=df_aligned_result,
-                        metadata={'alignment_axis': mode} # Guarda metadados sobre o processo
+                        metadata={"alignment_axis": mode},  # Guarda metadados sobre o processo
                     )
                     self.aligned_records.append(aligned_rec)
 
                 except Exception as e:
-                    exibir_erro(f"Falha ao alinhar Ensaio {rec_to_process.ensaio_id+1} para Ea={Ea}. Erro: {e}")
+                    exibir_erro(f"Falha ao alinhar Ensaio {rec_to_process.ensaio_id + 1} para Ea={Ea}. Erro: {e}")
 
-        exibir_mensagem(f"Alinhamento concluído. {len(self.aligned_records)} records de 'dados_alinhados' foram gerados.")
+        exibir_mensagem(
+            f"Alinhamento concluído. {len(self.aligned_records)} records de 'dados_alinhados' foram gerados."
+        )
 
     def get_aligned_records(self) -> List[SinteringDataRecord]:
         """
@@ -1373,6 +1417,7 @@ class Modulo5_1Alinhamento:
         Isso garante que os próximos módulos tenham acesso a todo o histórico de dados.
         """
         return self.all_input_records + self.aligned_records
+
 
 # modulo5_2_blaine.py (VERSÃO REFATORADA)
 
@@ -1388,6 +1433,7 @@ from typing import List
 # Funções utilitárias (exibir_mensagem, exibir_erro, gerar_link_download, etc.)
 # ...
 
+
 class Modulo5_2BlaineParameters:
     """
     Submódulo 5.2 Refatorado – Cálculo de Parâmetros de Densificação (Psi e Phi).
@@ -1395,12 +1441,13 @@ class Modulo5_2BlaineParameters:
     Este módulo consome records do tipo 'dados_alinhados' e produz novos
     records do tipo 'psi' e 'phi'.
     """
+
     def __init__(self, sintering_records: List[SinteringDataRecord]):
         # Armazena todos os records de entrada
         self.input_records = sintering_records
 
         # Filtra os records que este módulo irá processar
-        self.records_to_process = [rec for rec in sintering_records if rec.tipo_dado_y == 'dados_alinhados']
+        self.records_to_process = [rec for rec in sintering_records if rec.tipo_dado_y == "dados_alinhados"]
 
         # Lista para armazenar os novos records gerados ('psi' e 'phi')
         self.processed_records: List[SinteringDataRecord] = []
@@ -1415,24 +1462,28 @@ class Modulo5_2BlaineParameters:
 
         # A interface foi simplificada. A seleção de 'Ea' não é mais necessária aqui.
         self.float_rho0 = widgets.FloatText(
-            value=55.0, # Um valor inicial comum
+            value=55.0,  # Um valor inicial comum
             description="ρ0 (Dens. Inicial %):",
-            tooltip="Densidade inicial da peça verde em porcentagem (ex: 55.0)."
+            tooltip="Densidade inicial da peça verde em porcentagem (ex: 55.0).",
         )
 
-        self.btn_calc = widgets.Button(description="Calcular Parâmetros (Psi, Phi)", button_style='success')
+        self.btn_calc = widgets.Button(description="Calcular Parâmetros (Psi, Phi)", button_style="success")
         self.btn_calc.on_click(self._on_calc_blaine)
 
-        self.btn_plot = widgets.Button(description="Visualizar Curvas (Psi, Phi)", button_style='warning')
+        self.btn_plot = widgets.Button(description="Visualizar Curvas (Psi, Phi)", button_style="warning")
         self.btn_plot.on_click(self._on_plot)
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Submódulo 5.2 – Parâmetros de Densificação (Blaine)</h3>"),
-            widgets.HTML("<p>Defina a densidade inicial (ρ0) e clique em 'Calcular' para gerar os parâmetros ψ e φ.</p>"),
-            self.float_rho0,
-            widgets.HBox([self.btn_calc, self.btn_plot]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Submódulo 5.2 – Parâmetros de Densificação (Blaine)</h3>"),
+                widgets.HTML(
+                    "<p>Defina a densidade inicial (ρ0) e clique em 'Calcular' para gerar os parâmetros ψ e φ.</p>"
+                ),
+                self.float_rho0,
+                widgets.HBox([self.btn_calc, self.btn_plot]),
+                self.out,
+            ]
+        )
 
     def display(self):
         display(self.main_ui)
@@ -1447,27 +1498,27 @@ class Modulo5_2BlaineParameters:
             exibir_erro("O valor de ρ0 (Densidade Inicial) deve estar entre 0 e 100.")
             return
 
-        self.processed_records = [] # Limpa resultados anteriores
+        self.processed_records = []  # Limpa resultados anteriores
 
         for rec in self.records_to_process:
             try:
                 df_input = rec.df
                 # Os dados de densidade estão na coluna 'densidade_alinhada'
-                dens_values = df_input['densidade_alinhada'].values
+                dens_values = df_input["densidade_alinhada"].values
                 # O eixo X correspondente é 'logtheta_alinhado'
-                logtheta_values = df_input['logtheta_alinhado'].values
+                logtheta_values = df_input["logtheta_alinhado"].values
 
                 # --- Cálculo de Psi (ψ) ---
                 # ψ = (ρ - ρ₀) / (100 - ρ₀)
                 psi_vals = (dens_values - rho0) / (100.0 - rho0)
-                df_psi = pd.DataFrame({'logtheta_alinhado': logtheta_values, 'valor': psi_vals})
+                df_psi = pd.DataFrame({"logtheta_alinhado": logtheta_values, "valor": psi_vals})
 
                 rec_psi = SinteringDataRecord(
                     ensaio_id=rec.ensaio_id,
                     Ea=rec.Ea,
-                    tipo_dado_y='psi',
+                    tipo_dado_y="psi",
                     df=df_psi,
-                    metadata=rec.metadata.copy() # Propaga metadados anteriores
+                    metadata=rec.metadata.copy(),  # Propaga metadados anteriores
                 )
                 self.processed_records.append(rec_psi)
 
@@ -1475,23 +1526,25 @@ class Modulo5_2BlaineParameters:
                 # Φ = (ρ - ρ₀) / (100 - ρ)
                 # Adicionar uma pequena constante ao denominador para evitar divisão por zero
                 phi_vals = (dens_values - rho0) / (100.0 - dens_values + 1e-9)
-                df_phi = pd.DataFrame({'logtheta_alinhado': logtheta_values, 'valor': phi_vals})
+                df_phi = pd.DataFrame({"logtheta_alinhado": logtheta_values, "valor": phi_vals})
 
                 rec_phi = SinteringDataRecord(
-                    ensaio_id=rec.ensaio_id,
-                    Ea=rec.Ea,
-                    tipo_dado_y='phi',
-                    df=df_phi,
-                    metadata=rec.metadata.copy()
+                    ensaio_id=rec.ensaio_id, Ea=rec.Ea, tipo_dado_y="phi", df=df_phi, metadata=rec.metadata.copy()
                 )
                 self.processed_records.append(rec_phi)
 
             except KeyError as e:
-                exibir_erro(f"Erro de chave ao processar record para Ea={rec.Ea}, Ensaio={rec.ensaio_id+1}. Coluna esperada não encontrada: {e}")
+                exibir_erro(
+                    f"Erro de chave ao processar record para Ea={rec.Ea}, Ensaio={rec.ensaio_id + 1}. Coluna esperada não encontrada: {e}"
+                )
             except Exception as e:
-                exibir_erro(f"Erro inesperado ao processar record para Ea={rec.Ea}, Ensaio={rec.ensaio_id+1}. Erro: {e}")
+                exibir_erro(
+                    f"Erro inesperado ao processar record para Ea={rec.Ea}, Ensaio={rec.ensaio_id + 1}. Erro: {e}"
+                )
 
-        exibir_mensagem(f"Cálculo concluído. {len(self.processed_records)} novos records ('psi' e 'phi') foram gerados.")
+        exibir_mensagem(
+            f"Cálculo concluído. {len(self.processed_records)} novos records ('psi' e 'phi') foram gerados."
+        )
 
     def _on_plot(self, b):
         with self.out:
@@ -1516,14 +1569,15 @@ class Modulo5_2BlaineParameters:
 
         for rec in self.processed_records:
             df_plot = rec.df.dropna()
-            if df_plot.empty: continue
+            if df_plot.empty:
+                continue
 
-            label = f"E{rec.ensaio_id+1} Ea={rec.Ea:.1f}"
+            label = f"E{rec.ensaio_id + 1} Ea={rec.Ea:.1f}"
 
-            if rec.tipo_dado_y == 'psi':
-                ax1.plot(df_plot['logtheta_alinhado'], df_plot['valor'], 'o-', ms=3, label=label)
-            elif rec.tipo_dado_y == 'phi':
-                ax2.plot(df_plot['logtheta_alinhado'], df_plot['valor'], 'o-', ms=3, label=label)
+            if rec.tipo_dado_y == "psi":
+                ax1.plot(df_plot["logtheta_alinhado"], df_plot["valor"], "o-", ms=3, label=label)
+            elif rec.tipo_dado_y == "phi":
+                ax2.plot(df_plot["logtheta_alinhado"], df_plot["valor"], "o-", ms=3, label=label)
 
         ax1.grid(True)
         ax1.legend()
@@ -1532,13 +1586,13 @@ class Modulo5_2BlaineParameters:
         plt.tight_layout(rect=[0, 0.03, 1, 0.95])
         plt.show()
 
-
     def get_blaine_records(self) -> List[SinteringDataRecord]:
         """
         Retorna a lista completa de records: os originais de entrada mais os
         novos records 'psi' e 'phi' que foram processados.
         """
         return self.input_records + self.processed_records
+
 
 # modulo5_3_sigmoides.py (VERSÃO REFATORADA)
 
@@ -1556,6 +1610,7 @@ from typing import List
 # --- Definição da Função Sigmoidal ---
 # (Pode ficar aqui ou em um módulo de utilidades/modelos)
 
+
 class Modulo5_3Sigmoides:
     """
     Submódulo 5.3 Refatorado – Ajuste Sigmoidal (Fitting)
@@ -1563,6 +1618,7 @@ class Modulo5_3Sigmoides:
     Consome SinteringDataRecords e gera novos records contendo os resultados
     do ajuste da curva de Boltzmann.
     """
+
     def __init__(self, sintering_records: List[SinteringDataRecord]):
         self.input_records = sintering_records
         # Lista para armazenar os novos records gerados com os ajustes
@@ -1576,36 +1632,38 @@ class Modulo5_3Sigmoides:
             "Densidade Alinhada": "dados_alinhados",
             "Parâmetro Psi (ψ)": "psi",
             "Parâmetro Phi (φ)": "phi",
-            "Densidade Original": "densidade_original"
+            "Densidade Original": "densidade_original",
         }
 
         self.select_data = widgets.SelectMultiple(
-            options=list(self.DATA_OPTIONS_MAP.keys()),
-            description="Ajustar dados de:",
-            rows=4
+            options=list(self.DATA_OPTIONS_MAP.keys()), description="Ajustar dados de:", rows=4
         )
 
-        self.btn_fit = widgets.Button(description="Aplicar Ajuste Boltzmann", button_style='success')
+        self.btn_fit = widgets.Button(description="Aplicar Ajuste Boltzmann", button_style="success")
         self.btn_fit.on_click(self._on_fit_boltzmann)
 
-        self.btn_plot = widgets.Button(description="Visualizar Ajustes", button_style='warning')
+        self.btn_plot = widgets.Button(description="Visualizar Ajustes", button_style="warning")
         self.btn_plot.on_click(self._on_plot)
 
-        self.btn_export = widgets.Button(description="Exportar Ajustes", button_style='info', disabled=True)
+        self.btn_export = widgets.Button(description="Exportar Ajustes", button_style="info", disabled=True)
         self.btn_export.on_click(self._on_export)
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Submódulo 5.3 – Ajuste Sigmoidal (Fitting)</h3>"),
-            widgets.HTML("<p>Selecione um ou mais conjuntos de dados para aplicar o ajuste com a função de Boltzmann.</p>"),
-            self.select_data,
-            widgets.HBox([self.btn_fit, self.btn_plot]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Submódulo 5.3 – Ajuste Sigmoidal (Fitting)</h3>"),
+                widgets.HTML(
+                    "<p>Selecione um ou mais conjuntos de dados para aplicar o ajuste com a função de Boltzmann.</p>"
+                ),
+                self.select_data,
+                widgets.HBox([self.btn_fit, self.btn_plot]),
+                self.out,
+            ]
+        )
 
     def display(self):
         display(self.main_ui)
 
-# Em Modulo5_3Sigmoides
+    # Em Modulo5_3Sigmoides
 
     def _on_fit_boltzmann(self, b):
         with self.out:
@@ -1628,15 +1686,18 @@ class Modulo5_3Sigmoides:
         for rec in records_to_process:
             try:
                 df_clean = rec.df.dropna()
-                if len(df_clean) < 4: continue
+                if len(df_clean) < 4:
+                    continue
 
                 # --- LÓGICA CORRIGIDA PARA ENCONTRAR COLUNAS X E Y ---
-                x_col = next((col for col in df_clean.columns if 'logtheta' in col), None)
+                x_col = next((col for col in df_clean.columns if "logtheta" in col), None)
                 # O que não for a coluna X, será a Y.
                 y_col = next((col for col in df_clean.columns if col != x_col), None)
 
                 if x_col is None or y_col is None:
-                    exibir_erro(f"Não foi possível identificar as colunas X e Y no record {rec.tipo_dado_y} (Ensaio {rec.ensaio_id+1}, Ea={rec.Ea}).")
+                    exibir_erro(
+                        f"Não foi possível identificar as colunas X e Y no record {rec.tipo_dado_y} (Ensaio {rec.ensaio_id + 1}, Ea={rec.Ea})."
+                    )
                     continue
 
                 x_data = df_clean[x_col].values
@@ -1646,26 +1707,31 @@ class Modulo5_3Sigmoides:
                 p0 = [np.max(y_data), np.min(y_data), np.median(x_data), (np.max(x_data) - np.min(x_data)) / 4]
                 popt, _ = curve_fit(boltzmann_sigmoid, x_data, y_data, p0=p0, maxfev=10000)
                 y_fit_values = boltzmann_sigmoid(x_data, *popt)
-                df_fit_result = pd.DataFrame({x_col: x_data, 'valor_ajustado': y_fit_values})
+                df_fit_result = pd.DataFrame({x_col: x_data, "valor_ajustado": y_fit_values})
 
                 fit_record = SinteringDataRecord(
-                    ensaio_id=rec.ensaio_id, Ea=rec.Ea,
+                    ensaio_id=rec.ensaio_id,
+                    Ea=rec.Ea,
                     tipo_dado_y=f"fit_boltzmann_{rec.tipo_dado_y}",
                     df=df_fit_result,
-                    metadata={'popt': popt.tolist(), 'source_type': rec.tipo_dado_y}
+                    metadata={"popt": popt.tolist(), "source_type": rec.tipo_dado_y},
                 )
                 self.processed_records.append(fit_record)
 
             except Exception as e:
                 # O erro KeyError('valor') não deve mais ocorrer com a lógica acima
-                exibir_erro(f"Erro inesperado durante o ajuste do record {rec.tipo_dado_y} (Ensaio {rec.ensaio_id+1}, Ea={rec.Ea}): {e}")
+                exibir_erro(
+                    f"Erro inesperado durante o ajuste do record {rec.tipo_dado_y} (Ensaio {rec.ensaio_id + 1}, Ea={rec.Ea}): {e}"
+                )
 
-        exibir_mensagem(f"Ajuste concluído. {len(self.processed_records)} novos records de 'fit_boltzmann_*' foram gerados.")
+        exibir_mensagem(
+            f"Ajuste concluído. {len(self.processed_records)} novos records de 'fit_boltzmann_*' foram gerados."
+        )
         # Habilita o botão se houver resultados para exportar
         if self.processed_records:
-                self.btn_export.disabled = False
+            self.btn_export.disabled = False
 
-# Em Modulo5_3Sigmoides
+    # Em Modulo5_3Sigmoides
 
     def _on_plot(self, b):
         with self.out:
@@ -1677,21 +1743,28 @@ class Modulo5_3Sigmoides:
 
         for fit_rec in self.processed_records:
             # Encontra o record original que deu origem a este ajuste
-            source_rec = next((rec for rec in self.input_records
-                               if rec.ensaio_id == fit_rec.ensaio_id
-                               and rec.Ea == fit_rec.Ea
-                               and rec.tipo_dado_y == fit_rec.metadata.get('source_type')), None)
+            source_rec = next(
+                (
+                    rec
+                    for rec in self.input_records
+                    if rec.ensaio_id == fit_rec.ensaio_id
+                    and rec.Ea == fit_rec.Ea
+                    and rec.tipo_dado_y == fit_rec.metadata.get("source_type")
+                ),
+                None,
+            )
 
-            if source_rec is None: continue
+            if source_rec is None:
+                continue
 
             fig, ax = plt.subplots(figsize=(8, 6))
-            title = f"Ajuste Boltzmann - {fit_rec.metadata.get('source_type')}\n(Ensaio {fit_rec.ensaio_id+1}, Ea={fit_rec.Ea:.2f} kJ/mol)"
+            title = f"Ajuste Boltzmann - {fit_rec.metadata.get('source_type')}\n(Ensaio {fit_rec.ensaio_id + 1}, Ea={fit_rec.Ea:.2f} kJ/mol)"
             ax.set_title(title)
 
             # --- LÓGICA CORRIGIDA PARA ENCONTRAR COLUNAS X E Y DINAMICAMENTE ---
             df_orig_plot = source_rec.df.dropna()
 
-            x_col_orig = next((col for col in df_orig_plot.columns if 'logtheta' in col), None)
+            x_col_orig = next((col for col in df_orig_plot.columns if "logtheta" in col), None)
             y_col_orig = next((col for col in df_orig_plot.columns if col != x_col_orig), None)
 
             if x_col_orig is None or y_col_orig is None:
@@ -1699,24 +1772,38 @@ class Modulo5_3Sigmoides:
                 continue
 
             ax.set_xlabel(x_col_orig)
-            ax.set_ylabel(source_rec.tipo_dado_y.replace('_', ' ').title())
+            ax.set_ylabel(source_rec.tipo_dado_y.replace("_", " ").title())
 
             # Plota dados originais usando as colunas dinâmicas
-            ax.plot(df_orig_plot[x_col_orig], df_orig_plot[y_col_orig], 'o', label="Dados Originais", markersize=5, alpha=0.7)
+            ax.plot(
+                df_orig_plot[x_col_orig],
+                df_orig_plot[y_col_orig],
+                "o",
+                label="Dados Originais",
+                markersize=5,
+                alpha=0.7,
+            )
 
             # Plota curva ajustada
-            x_col_fit = next((col for col in fit_rec.df.columns if 'logtheta' in col), None)
+            x_col_fit = next((col for col in fit_rec.df.columns if "logtheta" in col), None)
             df_fit_plot = fit_rec.df.sort_values(x_col_fit)
-            ax.plot(df_fit_plot[x_col_fit], df_fit_plot['valor_ajustado'], '-', color='red', linewidth=2, label="Ajuste Boltzmann")
+            ax.plot(
+                df_fit_plot[x_col_fit],
+                df_fit_plot["valor_ajustado"],
+                "-",
+                color="red",
+                linewidth=2,
+                label="Ajuste Boltzmann",
+            )
 
             ax.legend()
             ax.grid(True)
             plt.tight_layout()
             plt.show()
 
-# ========================================================================
-# ADICIONE ESTE MÉTODO COMPLETO DENTRO DA CLASSE Modulo5_3Sigmoides
-# ========================================================================
+    # ========================================================================
+    # ADICIONE ESTE MÉTODO COMPLETO DENTRO DA CLASSE Modulo5_3Sigmoides
+    # ========================================================================
 
     def _on_export(self, b):
         with self.out:
@@ -1733,36 +1820,42 @@ class Modulo5_3Sigmoides:
         # Itera sobre cada resultado de ajuste
         for fit_rec in self.processed_records:
             # Encontra o record com os dados originais que correspondem a este ajuste
-            source_rec = next((rec for rec in self.input_records
-                               if rec.ensaio_id == fit_rec.ensaio_id
-                               and rec.Ea == fit_rec.Ea
-                               and rec.tipo_dado_y == fit_rec.metadata.get('source_type')), None)
+            source_rec = next(
+                (
+                    rec
+                    for rec in self.input_records
+                    if rec.ensaio_id == fit_rec.ensaio_id
+                    and rec.Ea == fit_rec.Ea
+                    and rec.tipo_dado_y == fit_rec.metadata.get("source_type")
+                ),
+                None,
+            )
 
             if source_rec is None:
                 continue
 
             # Junta os dados originais e os dados ajustados
-            x_col = next((col for col in source_rec.df.columns if 'logtheta' in col), 'logtheta')
-            y_col = next((col for col in source_rec.df.columns if col != x_col), 'valor')
+            x_col = next((col for col in source_rec.df.columns if "logtheta" in col), "logtheta")
+            y_col = next((col for col in source_rec.df.columns if col != x_col), "valor")
 
             # Renomeia colunas para clareza
-            df_source = source_rec.df.rename(columns={x_col: 'logtheta', y_col: 'valor_original'})
-            df_fit = fit_rec.df.rename(columns={x_col: 'logtheta', 'valor_ajustado': 'valor_ajustado'})
+            df_source = source_rec.df.rename(columns={x_col: "logtheta", y_col: "valor_original"})
+            df_fit = fit_rec.df.rename(columns={x_col: "logtheta", "valor_ajustado": "valor_ajustado"})
 
             # Une os dois dataframes usando 'logtheta' como chave
-            df_merged = pd.merge(df_source, df_fit, on='logtheta', how='outer')
+            df_merged = pd.merge(df_source, df_fit, on="logtheta", how="outer")
 
             # Adiciona os metadados
-            df_merged['Ensaio_ID'] = fit_rec.ensaio_id + 1
-            df_merged['Ea_kJ_mol'] = fit_rec.Ea
-            df_merged['Tipo_Dado'] = fit_rec.metadata.get('source_type')
+            df_merged["Ensaio_ID"] = fit_rec.ensaio_id + 1
+            df_merged["Ea_kJ_mol"] = fit_rec.Ea
+            df_merged["Tipo_Dado"] = fit_rec.metadata.get("source_type")
 
             # Adiciona os parâmetros do ajuste (popt)
-            popt = fit_rec.metadata.get('popt', [np.nan] * 4)
-            df_merged['popt_A1'] = popt[0]
-            df_merged['popt_A2'] = popt[1]
-            df_merged['popt_x0'] = popt[2]
-            df_merged['popt_dx'] = popt[3]
+            popt = fit_rec.metadata.get("popt", [np.nan] * 4)
+            df_merged["popt_A1"] = popt[0]
+            df_merged["popt_A2"] = popt[1]
+            df_merged["popt_x0"] = popt[2]
+            df_merged["popt_dx"] = popt[3]
 
             lista_de_dfs_para_export.append(df_merged)
 
@@ -1775,8 +1868,16 @@ class Modulo5_3Sigmoides:
 
         # Reorganiza as colunas para melhor leitura
         col_order = [
-            'Ensaio_ID', 'Ea_kJ_mol', 'Tipo_Dado', 'logtheta', 'valor_original', 'valor_ajustado',
-            'popt_A1', 'popt_A2', 'popt_x0', 'popt_dx'
+            "Ensaio_ID",
+            "Ea_kJ_mol",
+            "Tipo_Dado",
+            "logtheta",
+            "valor_original",
+            "valor_ajustado",
+            "popt_A1",
+            "popt_A2",
+            "popt_x0",
+            "popt_dx",
         ]
         df_export_final = df_export_final[col_order]
 
@@ -1792,6 +1893,7 @@ class Modulo5_3Sigmoides:
         """
         return self.input_records + self.processed_records
 
+
 # modulo5_4_roteador.py (VERSÃO FINAL CORRIGIDA)
 
 import ipywidgets as widgets
@@ -1805,6 +1907,7 @@ from typing import List
 # from modulo5_4_2_Ref import Modulo5_4_2Ref
 # from modulo5_4_3_blaine_linear import Modulo5_4_3BlaineLinear
 # from modulo1_interface import exibir_mensagem, exibir_erro
+
 
 class Modulo5_4_Roteador:
     """
@@ -1828,38 +1931,40 @@ class Modulo5_4_Roteador:
         self.out = widgets.Output()
         self._build_ui()
 
-# Em Modulo5_4_Roteador
+    # Em Modulo5_4_Roteador
 
     def _build_ui(self):
         # A definição de 'explanation_text' e 'radio_paths' continua a mesma...
-        explanation_text = """...""" # Seu texto de explicação
+        explanation_text = """..."""  # Seu texto de explicação
         self.html_explanation = widgets.HTML(value=explanation_text)
 
         self.radio_paths = widgets.RadioButtons(
             options=[
                 ("1. Comparação de Curvas (MRS/MPCD)", "comparisons"),
                 ("2. Erro de Ajuste Individual (MSE)", "individual_error"),
-                ("3. Linearização de Blaine", "blaine_linear")
+                ("3. Linearização de Blaine", "blaine_linear"),
             ],
             value="comparisons",
             # A description longa pode ser removida e colocada em um HTML separado
         )
 
         # Botões
-        self.btn_proceed = widgets.Button(description="Executar Análise", button_style='success')
+        self.btn_proceed = widgets.Button(description="Executar Análise", button_style="success")
         self.btn_proceed.on_click(self._on_proceed_clicked)
-        self.btn_back = widgets.Button(description="Voltar (p/ Módulo 5.3)", button_style='warning')
+        self.btn_back = widgets.Button(description="Voltar (p/ Módulo 5.3)", button_style="warning")
         self.btn_back.on_click(self._on_back_clicked)
 
         # --- SOLUÇÃO PARA O LAYOUT ---
         # Colocamos o RadioButtons dentro de uma VBox para garantir a disposição vertical.
-        self.main_ui = widgets.VBox([
-            self.html_explanation,
-            widgets.HTML("<b>Escolha o método de análise final:</b>"),
-            widgets.VBox([self.radio_paths]), # <-- MUDANÇA AQUI
-            widgets.HBox([self.btn_back, self.btn_proceed]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                self.html_explanation,
+                widgets.HTML("<b>Escolha o método de análise final:</b>"),
+                widgets.VBox([self.radio_paths]),  # <-- MUDANÇA AQUI
+                widgets.HBox([self.btn_back, self.btn_proceed]),
+                self.out,
+            ]
+        )
 
     def display(self):
         """Exibe a interface principal do roteador."""
@@ -1895,12 +2000,13 @@ class Modulo5_4_Roteador:
         with self.out:
             clear_output()
 
-        if self.controller and hasattr(self.controller, 'show_module_by_step'):
+        if self.controller and hasattr(self.controller, "show_module_by_step"):
             exibir_mensagem("Retornando ao Módulo 5.3 (Ajuste Sigmoidal)...")
             # O passo 7 no MainInteractive corresponde ao Módulo 5.3
             self.controller.show_module_by_step(7)
         else:
             exibir_erro("Controlador ou método de retorno não foi encontrado.")
+
 
 # modulo5_4_1_comparaçao.py (VERSÃO REFATORADA)
 
@@ -1918,6 +2024,7 @@ from collections import defaultdict
 
 # Funções utilitárias (exibir_mensagem, exibir_erro, gerar_link_download, etc.)
 # ...
+
 
 class Modulo5_4_1Comparisons:
     """
@@ -1947,40 +2054,45 @@ class Modulo5_4_1Comparisons:
 
         # Filtra opções para mostrar apenas os dados disponíveis
         available_types = set(rec.tipo_dado_y for rec in self.all_records)
-        self.available_options = [ui_text for ui_text, internal_type in self.DATA_OPTIONS_MAP.items() if internal_type in available_types]
+        self.available_options = [
+            ui_text for ui_text, internal_type in self.DATA_OPTIONS_MAP.items() if internal_type in available_types
+        ]
 
         if not self.available_options:
             self.main_ui = widgets.HTML("<b>Nenhum tipo de dado compatível com a comparação foi encontrado.</b>")
             return
 
         self.select_data = widgets.SelectMultiple(
-            options=self.available_options,
-            description="Comparar dados de:",
-            rows=min(len(self.available_options), 6)
+            options=self.available_options, description="Comparar dados de:", rows=min(len(self.available_options), 6)
         )
 
         self.radio_method = widgets.RadioButtons(
             options=[("Mean Residual Square (MRS)", "mrs"), ("Mean Perpendicular Curve Distance (MPCD)", "mpcd")],
-            value="mrs", description="Método:"
+            value="mrs",
+            description="Método:",
         )
 
-        self.btn_compare = widgets.Button(description="Executar Comparação", button_style='success')
+        self.btn_compare = widgets.Button(description="Executar Comparação", button_style="success")
         self.btn_compare.on_click(self._on_compare)
 
-        self.btn_export = widgets.Button(description="Exportar Resultados", button_style='info', disabled=True)
+        self.btn_export = widgets.Button(description="Exportar Resultados", button_style="info", disabled=True)
         self.btn_export.on_click(self._on_export)
 
-        self.btn_back = widgets.Button(description="Voltar", button_style='warning')
+        self.btn_back = widgets.Button(description="Voltar", button_style="warning")
         self.btn_back.on_click(self._on_back_clicked)
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Submódulo 5.4.1 – Comparação para Melhor Energia de Ativação</h3>"),
-            widgets.HTML("<p>Selecione os conjuntos de dados e o método para encontrar a Ea que melhor sobrepõe as curvas.</p>"),
-            self.select_data,
-            self.radio_method,
-            widgets.HBox([self.btn_back, self.btn_compare, self.btn_export]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Submódulo 5.4.1 – Comparação para Melhor Energia de Ativação</h3>"),
+                widgets.HTML(
+                    "<p>Selecione os conjuntos de dados e o método para encontrar a Ea que melhor sobrepõe as curvas.</p>"
+                ),
+                self.select_data,
+                self.radio_method,
+                widgets.HBox([self.btn_back, self.btn_compare, self.btn_export]),
+                self.out,
+            ]
+        )
 
     def display(self):
         display(self.main_ui)
@@ -2016,7 +2128,8 @@ class Modulo5_4_1Comparisons:
             errors_for_this_type = {}
             # 3. Calcula o erro para cada Ea
             for Ea, group in records_by_ea.items():
-                if len(group) < 2: continue # Precisa de pelo menos 2 ensaios para comparar
+                if len(group) < 2:
+                    continue  # Precisa de pelo menos 2 ensaios para comparar
 
                 # Extrai os dados (arrays de [x,y]) de cada record no grupo
                 curves_data = [rec.df.dropna().values for rec in group]
@@ -2030,10 +2143,9 @@ class Modulo5_4_1Comparisons:
 
                     if pd.notna(error_value) and np.isfinite(error_value):
                         errors_for_this_type[Ea] = error_value
-                        all_errors_details.append({
-                            "DataType": data_type, "Method": method.upper(),
-                            "Ea_kJ_mol": Ea, "Error": error_value
-                        })
+                        all_errors_details.append(
+                            {"DataType": data_type, "Method": method.upper(), "Ea_kJ_mol": Ea, "Error": error_value}
+                        )
                 except Exception as e:
                     exibir_erro(f"Erro ao calcular {method.upper()} para {data_type} com Ea={Ea}: {e}")
 
@@ -2041,10 +2153,9 @@ class Modulo5_4_1Comparisons:
             if errors_for_this_type:
                 best_ea = min(errors_for_this_type, key=errors_for_this_type.get)
                 min_error = errors_for_this_type[best_ea]
-                all_results_summary.append({
-                    "DataType": data_type, "Method": method.upper(),
-                    "Best_Ea_kJ_mol": best_ea, "Min_Error": min_error
-                })
+                all_results_summary.append(
+                    {"DataType": data_type, "Method": method.upper(), "Best_Ea_kJ_mol": best_ea, "Min_Error": min_error}
+                )
 
         # 5. Apresenta os resultados
         if all_results_summary:
@@ -2052,18 +2163,18 @@ class Modulo5_4_1Comparisons:
             self.comparison_details_df = pd.DataFrame(all_errors_details)
 
             exibir_mensagem("--- MELHORES ENERGIAS DE ATIVAÇÃO ENCONTRADAS ---")
-            display(self.results_df.style.format({'Best_Ea_kJ_mol': '{:.2f}', 'Min_Error': '{:.6g}'}))
+            display(self.results_df.style.format({"Best_Ea_kJ_mol": "{:.2f}", "Min_Error": "{:.6g}"}))
 
             exibir_mensagem("\n--- Detalhamento do Erro vs. Ea ---")
-            display(self.comparison_details_df.style.format({'Ea_kJ_mol': '{:.2f}', 'Error': '{:.6g}'}))
+            display(self.comparison_details_df.style.format({"Ea_kJ_mol": "{:.2f}", "Error": "{:.6g}"}))
 
             self.btn_export.disabled = False
         else:
             exibir_erro("Não foi possível calcular nenhum resultado. Verifique os dados de entrada e a seleção.")
 
- # ==========================================================
-# MÉTODO CORRIGIDO para a classe Modulo5_4_1Comparisons
-# ==========================================================
+    # ==========================================================
+    # MÉTODO CORRIGIDO para a classe Modulo5_4_1Comparisons
+    # ==========================================================
 
     def _calculate_mrs_for_ea(self, list_of_xy_arrays: List[np.ndarray]) -> float:
         """
@@ -2085,7 +2196,7 @@ class Modulo5_4_1Comparisons:
                 max_vals.append(np.nanmax(xy_array[:, 1]))
 
         if not min_vals or not max_vals:
-            return np.nan # Não há dados válidos
+            return np.nan  # Não há dados válidos
 
         # 2. A sobreposição começa no maior dos mínimos e termina no menor dos máximos
         overlapping_min = np.max(min_vals)
@@ -2102,14 +2213,15 @@ class Modulo5_4_1Comparisons:
         interpolated_x_matrix = []
         for xy_array in list_of_xy_arrays:
             # Para MRS, interpolamos x = f(y)
-            df_sorted = pd.DataFrame(xy_array, columns=['x','y']).sort_values('y').drop_duplicates('y')
-            if len(df_sorted) < 2: continue
+            df_sorted = pd.DataFrame(xy_array, columns=["x", "y"]).sort_values("y").drop_duplicates("y")
+            if len(df_sorted) < 2:
+                continue
 
-            f_interp = interp1d(df_sorted['y'], df_sorted['x'], kind='linear', bounds_error=False, fill_value=np.nan)
+            f_interp = interp1d(df_sorted["y"], df_sorted["x"], kind="linear", bounds_error=False, fill_value=np.nan)
             interpolated_x_matrix.append(f_interp(common_y_axis))
 
         if len(interpolated_x_matrix) < len(list_of_xy_arrays):
-            return np.nan # Alguma interpolação falhou
+            return np.nan  # Alguma interpolação falhou
 
         # Calcula a média e o desvio padrão na direção X (logtheta)
         x_matrix = np.array(interpolated_x_matrix)
@@ -2117,14 +2229,14 @@ class Modulo5_4_1Comparisons:
         # Com a nova lógica, não devemos ter colunas inteiras de NaN
         mean_x_at_y = np.nanmean(x_matrix, axis=0)
 
-        squared_errors = (x_matrix - mean_x_at_y)**2
+        squared_errors = (x_matrix - mean_x_at_y) ** 2
         mrs = np.nanmean(squared_errors)
 
         return mrs
 
-   # ==========================================================
-# MÉTODO CORRIGIDO para a classe Modulo5_4_1Comparisons
-# ==========================================================
+    # ==========================================================
+    # MÉTODO CORRIGIDO para a classe Modulo5_4_1Comparisons
+    # ==========================================================
 
     def _calculate_mpcd_for_ea(self, list_of_xy_arrays: List[np.ndarray]) -> float:
         """
@@ -2146,7 +2258,7 @@ class Modulo5_4_1Comparisons:
                 max_vals.append(np.nanmax(xy_array[:, 0]))
 
         if not min_vals or not max_vals:
-            return np.nan # Não há dados válidos
+            return np.nan  # Não há dados válidos
 
         # 2. A sobreposição começa no maior dos mínimos e termina no menor dos máximos
         overlapping_min = np.max(min_vals)
@@ -2163,40 +2275,51 @@ class Modulo5_4_1Comparisons:
         # O resto da função continua, mas agora usando o 'common_x_axis' seguro
         interpolated_y_matrix = []
         for xy_array in list_of_xy_arrays:
-            df_sorted = pd.DataFrame(xy_array, columns=['x','y']).sort_values('x').drop_duplicates('x')
-            if len(df_sorted) < 2: continue
-            f_interp = interp1d(df_sorted['x'], df_sorted['y'], kind='linear', bounds_error=False, fill_value=np.nan)
+            df_sorted = pd.DataFrame(xy_array, columns=["x", "y"]).sort_values("x").drop_duplicates("x")
+            if len(df_sorted) < 2:
+                continue
+            f_interp = interp1d(df_sorted["x"], df_sorted["y"], kind="linear", bounds_error=False, fill_value=np.nan)
             interpolated_y_matrix.append(f_interp(common_x_axis))
 
-        if len(interpolated_y_matrix) < len(list_of_xy_arrays): return np.nan
+        if len(interpolated_y_matrix) < len(list_of_xy_arrays):
+            return np.nan
 
         y_matrix = np.array(interpolated_y_matrix)
         avg_y_curve = np.nanmean(y_matrix, axis=0)
 
         valid_avg_mask = ~np.isnan(avg_y_curve)
-        if np.sum(valid_avg_mask) < 2: return np.nan
+        if np.sum(valid_avg_mask) < 2:
+            return np.nan
 
-        f_avg = interp1d(common_x_axis[valid_avg_mask], avg_y_curve[valid_avg_mask], kind='cubic', bounds_error=False, fill_value="extrapolate")
+        f_avg = interp1d(
+            common_x_axis[valid_avg_mask],
+            avg_y_curve[valid_avg_mask],
+            kind="cubic",
+            bounds_error=False,
+            fill_value="extrapolate",
+        )
 
         all_perp_distances = []
         for xy_array in list_of_xy_arrays:
             for point in xy_array:
                 # Apenas calcula a distância para pontos dentro da faixa de sobreposição
                 if overlapping_min <= point[0] <= overlapping_max:
-                    def distance_sq(x_c):
-                        return (point[0] - x_c)**2 + (point[1] - f_avg(x_c))**2
 
-                    res = minimize_scalar(distance_sq, bounds=(overlapping_min, overlapping_max), method='bounded')
+                    def distance_sq(x_c):
+                        return (point[0] - x_c) ** 2 + (point[1] - f_avg(x_c)) ** 2
+
+                    res = minimize_scalar(distance_sq, bounds=(overlapping_min, overlapping_max), method="bounded")
                     if res.success:
                         all_perp_distances.append(np.sqrt(res.fun))
 
         return np.mean(all_perp_distances) if all_perp_distances else np.nan
-# =================================================================================
-# MÉTODO CORRIGIDO para a classe Modulo5_4_1Comparisons
-# =================================================================================
-# ========================================================================
-# ADICIONE ESTE MÉTODO DENTRO DA CLASSE Modulo5_4_1Comparisons
-# ========================================================================
+
+    # =================================================================================
+    # MÉTODO CORRIGIDO para a classe Modulo5_4_1Comparisons
+    # =================================================================================
+    # ========================================================================
+    # ADICIONE ESTE MÉTODO DENTRO DA CLASSE Modulo5_4_1Comparisons
+    # ========================================================================
 
     def _on_back_clicked(self, b):
         """
@@ -2206,7 +2329,7 @@ class Modulo5_4_1Comparisons:
         with self.out:
             clear_output()
 
-        if self.parent and hasattr(self.parent, 'display'):
+        if self.parent and hasattr(self.parent, "display"):
             exibir_mensagem("Retornando à tela de seleção de método...")
             self.parent.display()
         else:
@@ -2235,12 +2358,15 @@ class Modulo5_4_1Comparisons:
                 self.comparison_details_df.to_excel(writer, sheet_name="All_Errors_vs_Ea", index=False)
 
             # Gera o link para download
-            link = gerar_link_download(self.results_df, nome_arquivo=fname) # Apenas para gerar o link, o arquivo já está salvo.
+            link = gerar_link_download(
+                self.results_df, nome_arquivo=fname
+            )  # Apenas para gerar o link, o arquivo já está salvo.
             display(link)
             exibir_mensagem(f"Exportação concluída. Arquivo '{fname}' salvo.")
 
         except Exception as e:
             exibir_erro(f"Ocorreu um erro durante a exportação: {e}")
+
 
 # modulo5_4_2_Ref.py (VERSÃO FINAL AJUSTADA)
 
@@ -2256,6 +2382,7 @@ from collections import defaultdict
 # from core import SinteringDataRecord
 # from modulo1_interface import exibir_mensagem, exibir_erro, boltzmann_sigmoid
 
+
 class Modulo5_4_2Ref:
     """
     Submódulo 5.4.2 Refatorado – Método de Erro de Ajuste Individual (MSE).
@@ -2264,6 +2391,7 @@ class Modulo5_4_2Ref:
     identificando qual valor de Ea, dentre os já calculados, resulta em uma curva
     com o menor erro quadrático médio (MSE) ao ser ajustada por uma função sigmoidal.
     """
+
     def __init__(self, sintering_records: List[SinteringDataRecord], parent=None):
         self.all_records = sintering_records
         self.parent = parent
@@ -2277,36 +2405,40 @@ class Modulo5_4_2Ref:
             "Densidade Alinhada": "dados_alinhados",
             "Parâmetro Psi (ψ)": "psi",
             "Parâmetro Phi (φ)": "phi",
-            "Densidade Original": "densidade_original"
+            "Densidade Original": "densidade_original",
         }
 
         # Filtra as opções da UI para mostrar apenas os tipos de dados que existem nos records
         available_types = set(rec.tipo_dado_y for rec in self.all_records)
-        self.available_options = [ui_text for ui_text, internal_type in self.DATA_OPTIONS_MAP.items() if internal_type in available_types]
+        self.available_options = [
+            ui_text for ui_text, internal_type in self.DATA_OPTIONS_MAP.items() if internal_type in available_types
+        ]
 
         if not self.available_options:
             self.main_ui = widgets.HTML("<b>Nenhum tipo de dado compatível com este método foi encontrado.</b>")
             return
 
         self.select_data = widgets.Dropdown(
-            options=self.available_options,
-            description="Analisar dados de:",
-            style={'description_width': 'initial'}
+            options=self.available_options, description="Analisar dados de:", style={"description_width": "initial"}
         )
 
-        self.btn_calc = widgets.Button(description="Calcular Melhor Ea (por Erro Individual)", button_style='success')
+        self.btn_calc = widgets.Button(description="Calcular Melhor Ea (por Erro Individual)", button_style="success")
         self.btn_calc.on_click(self._on_calc)
 
-        self.btn_back = widgets.Button(description="Voltar", button_style='warning')
+        self.btn_back = widgets.Button(description="Voltar", button_style="warning")
         self.btn_back.on_click(self._on_back_clicked)
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Submódulo 5.4.2 – Método de Erro de Ajuste Individual</h3>"),
-            widgets.HTML("<p>Este método avalia qual das Energias de Ativação já calculadas produz a curva mais 'perfeita' (com menor erro de auto-ajuste) para cada ensaio.</p>"),
-            self.select_data,
-            widgets.HBox([self.btn_back, self.btn_calc]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Submódulo 5.4.2 – Método de Erro de Ajuste Individual</h3>"),
+                widgets.HTML(
+                    "<p>Este método avalia qual das Energias de Ativação já calculadas produz a curva mais 'perfeita' (com menor erro de auto-ajuste) para cada ensaio.</p>"
+                ),
+                self.select_data,
+                widgets.HBox([self.btn_back, self.btn_calc]),
+                self.out,
+            ]
+        )
 
     def display(self):
         """Exibe a interface principal do módulo."""
@@ -2314,13 +2446,14 @@ class Modulo5_4_2Ref:
 
     def _calc_mse_error(self, x_vals, y_vals):
         """Calcula o erro quadrático médio (MSE) de um ajuste Boltzmann."""
-        if len(x_vals) < 4: return np.inf
+        if len(x_vals) < 4:
+            return np.inf
         try:
             # Estimativas iniciais para os parâmetros do ajuste
             p0 = [np.max(y_vals), np.min(y_vals), np.median(x_vals), (np.max(x_vals) - np.min(x_vals)) / 4]
             popt, _ = curve_fit(boltzmann_sigmoid, x_vals, y_vals, p0=p0, maxfev=5000)
             y_pred = boltzmann_sigmoid(x_vals, *popt)
-            return np.mean((y_vals - y_pred)**2)
+            return np.mean((y_vals - y_pred) ** 2)
         except Exception:
             return np.inf
 
@@ -2341,10 +2474,11 @@ class Modulo5_4_2Ref:
             df_clean = rec.df.dropna()
 
             # Determina qual coluna é o eixo X (logtheta) dinamicamente
-            x_col = next((col for col in df_clean.columns if 'logtheta' in col), None)
-            y_col = next((col for col in df_clean.columns if 'valor' in col), None)
+            x_col = next((col for col in df_clean.columns if "logtheta" in col), None)
+            y_col = next((col for col in df_clean.columns if "valor" in col), None)
 
-            if x_col is None or y_col is None: continue
+            if x_col is None or y_col is None:
+                continue
 
             error = self._calc_mse_error(df_clean[x_col].values, df_clean[y_col].values)
 
@@ -2354,22 +2488,25 @@ class Modulo5_4_2Ref:
         # Encontra a melhor Ea para cada ensaio e formata o resultado
         summary_list = []
         for ensaio_id, ea_errors in results_by_ensaio.items():
-            if not ea_errors: continue
+            if not ea_errors:
+                continue
 
             best_ea = min(ea_errors, key=ea_errors.get)
             min_error = ea_errors[best_ea]
 
-            summary_list.append({
-                "Ensaio_ID": ensaio_id + 1,
-                "Tipo de Dado": selected_type,
-                "Melhor_Ea (kJ/mol)": best_ea,
-                "Min_MSE": min_error
-            })
+            summary_list.append(
+                {
+                    "Ensaio_ID": ensaio_id + 1,
+                    "Tipo de Dado": selected_type,
+                    "Melhor_Ea (kJ/mol)": best_ea,
+                    "Min_MSE": min_error,
+                }
+            )
 
         if summary_list:
             self.results_df = pd.DataFrame(summary_list)
             exibir_mensagem("--- MELHOR Ea POR ENSAIO (MÉTODO DE ERRO INDIVIDUAL) ---")
-            display(self.results_df.style.format({'Melhor_Ea (kJ/mol)': '{:.2f}', 'Min_MSE': '{:.6g}'}))
+            display(self.results_df.style.format({"Melhor_Ea (kJ/mol)": "{:.2f}", "Min_MSE": "{:.6g}"}))
         else:
             exibir_erro("Não foi possível calcular nenhum resultado válido.")
 
@@ -2377,6 +2514,7 @@ class Modulo5_4_2Ref:
         """Retorna à tela do roteador."""
         if self.parent:
             self.parent.display()
+
 
 # modulo5_4_3_blaine_linear.py (VERSÃO REFATORADA)
 
@@ -2392,12 +2530,14 @@ from typing import List
 # from core import SinteringDataRecord
 # ...
 
+
 class Modulo5_4_3BlaineLinear:
     """
     Submódulo 5.4.3 Refatorado – Método de Linearização de Blaine.
     Aplica uma transformação linearizante a dados de 'psi' ou 'phi' e
     realiza uma regressão linear para avaliar a qualidade do ajuste (R²).
     """
+
     def __init__(self, sintering_records: List[SinteringDataRecord], parent=None):
         self.all_records = sintering_records
         self.parent = parent
@@ -2410,21 +2550,23 @@ class Modulo5_4_3BlaineLinear:
             options=["Parâmetro Psi (ψ)", "Parâmetro Phi (φ)"],
             description="Linearizar:",
         )
-        self.btn_linearize = widgets.Button(description="Executar Linearização", button_style='success')
+        self.btn_linearize = widgets.Button(description="Executar Linearização", button_style="success")
         self.btn_linearize.on_click(self._on_linearize)
 
-        self.btn_plot = widgets.Button(description="Visualizar Linearização", button_style='warning')
+        self.btn_plot = widgets.Button(description="Visualizar Linearização", button_style="warning")
         self.btn_plot.on_click(self._on_plot)
 
-        self.btn_back = widgets.Button(description="Voltar", button_style='warning')
+        self.btn_back = widgets.Button(description="Voltar", button_style="warning")
         self.btn_back.on_click(self._on_back_clicked)
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Submódulo 5.4.3 – Método de Linearização</h3>"),
-            self.select_param,
-            widgets.HBox([self.btn_linearize, self.btn_plot, self.btn_back]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HTML("<h3>Submódulo 5.4.3 – Método de Linearização</h3>"),
+                self.select_param,
+                widgets.HBox([self.btn_linearize, self.btn_plot, self.btn_back]),
+                self.out,
+            ]
+        )
 
     def display(self):
         display(self.main_ui)
@@ -2433,7 +2575,7 @@ class Modulo5_4_3BlaineLinear:
         with self.out:
             clear_output()
 
-        param_choice = 'psi' if "Psi" in self.select_param.value else 'phi'
+        param_choice = "psi" if "Psi" in self.select_param.value else "phi"
         records_to_process = [rec for rec in self.all_records if rec.tipo_dado_y == param_choice]
 
         if not records_to_process:
@@ -2443,37 +2585,45 @@ class Modulo5_4_3BlaineLinear:
         results_list = []
         for rec in records_to_process:
             df = rec.df.dropna()
-            if len(df) < 2: continue
+            if len(df) < 2:
+                continue
 
-            x_vals = df['logtheta_alinhado'].values
-            y_vals = df['valor'].values
+            x_vals = df["logtheta_alinhado"].values
+            y_vals = df["valor"].values
             y_transformed = np.nan
 
             try:
-                if param_choice == 'psi':
+                if param_choice == "psi":
                     # Transf: ln(y / (1 - y)) - garante que y esteja entre 0 e 1
                     valid_mask = (y_vals > 1e-9) & (y_vals < 1 - 1e-9)
-                    if np.sum(valid_mask) < 2: continue
+                    if np.sum(valid_mask) < 2:
+                        continue
                     y_transformed = np.log(y_vals[valid_mask] / (1 - y_vals[valid_mask]))
                     x_transformed = x_vals[valid_mask]
 
-                elif param_choice == 'phi':
+                elif param_choice == "phi":
                     # Transf: ln(y) - garante que y > 0
                     valid_mask = y_vals > 1e-9
-                    if np.sum(valid_mask) < 2: continue
+                    if np.sum(valid_mask) < 2:
+                        continue
                     y_transformed = np.log(y_vals[valid_mask])
                     x_transformed = x_vals[valid_mask]
 
                 # Regressão Linear
                 slope, intercept, r_value, p_value, std_err = linregress(x_transformed, y_transformed)
 
-                results_list.append({
-                    "Ensaio_ID": rec.ensaio_id + 1, "Ea_kJ_mol": rec.Ea,
-                    "DataType": param_choice, "R_squared": r_value**2,
-                    "Slope": slope, "Intercept": intercept
-                })
+                results_list.append(
+                    {
+                        "Ensaio_ID": rec.ensaio_id + 1,
+                        "Ea_kJ_mol": rec.Ea,
+                        "DataType": param_choice,
+                        "R_squared": r_value**2,
+                        "Slope": slope,
+                        "Intercept": intercept,
+                    }
+                )
             except Exception as e:
-                exibir_erro(f"Erro na linearização para Ensaio {rec.ensaio_id+1}, Ea={rec.Ea}: {e}")
+                exibir_erro(f"Erro na linearização para Ensaio {rec.ensaio_id + 1}, Ea={rec.Ea}: {e}")
 
         if results_list:
             self.results_df = pd.DataFrame(results_list).sort_values(by="R_squared", ascending=False)
@@ -2492,10 +2642,12 @@ class Modulo5_4_3BlaineLinear:
         if self.parent:
             self.parent.display()
 
+
 import ipywidgets as widgets
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
+
 
 class Modulo6_0_Arrhenius:
     """
@@ -2506,19 +2658,16 @@ class Modulo6_0_Arrhenius:
         self.dfs_ensaios = dfs
         self.arrhenius_results = {}
 
-        self.btn_calc = widgets.Button(description="Calcular Arrhenius", button_style='success')
-        self.btn_export = widgets.Button(description="Exportar Resultados Arrhenius", button_style='info')
+        self.btn_calc = widgets.Button(description="Calcular Arrhenius", button_style="success")
+        self.btn_export = widgets.Button(description="Exportar Resultados Arrhenius", button_style="info")
         self.out = widgets.Output()
 
         self.btn_calc.on_click(self._on_calc)
         self.btn_export.on_click(self._on_export)
 
-        self.main_ui = widgets.VBox([
-            widgets.HTML("<h3>Módulo 6.0 – Cálculo de Arrhenius</h3>"),
-            self.btn_calc,
-            self.btn_export,
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [widgets.HTML("<h3>Módulo 6.0 – Cálculo de Arrhenius</h3>"), self.btn_calc, self.btn_export, self.out]
+        )
 
     def _on_calc(self, b):
         with self.out:
@@ -2533,10 +2682,9 @@ class Modulo6_0_Arrhenius:
             temp_col = next((col for col in df.columns if "Temperature_C" in col), None)
             dens_col = next((col for col in df.columns if "DensidadePct" in col), None)
 
-
             if not (time_col and temp_col and dens_col):
                 with self.out:
-                    exibir_erro(f"[ERRO] Ensaio {i+1}: Faltam as colunas necessárias. Pulando.")
+                    exibir_erro(f"[ERRO] Ensaio {i + 1}: Faltam as colunas necessárias. Pulando.")
                 continue
 
             df_s = df.sort_values(dens_col).reset_index(drop=True)
@@ -2545,14 +2693,11 @@ class Modulo6_0_Arrhenius:
 
             if dens_max <= dens_min:
                 with self.out:
-                    exibir_erro(f"[AVISO] Ensaio {i+1}: Densidade Constante ({dens_min}). Pulando.")
+                    exibir_erro(f"[AVISO] Ensaio {i + 1}: Densidade Constante ({dens_min}). Pulando.")
                 continue
 
             n_points = 5
-            dens_targets = [
-                dens_min + idx_*(dens_max - dens_min)/(n_points - 1)
-                for idx_ in range(n_points)
-            ]
+            dens_targets = [dens_min + idx_ * (dens_max - dens_min) / (n_points - 1) for idx_ in range(n_points)]
 
             try:
                 T_K_s = df_s[temp_col] + 273.15
@@ -2560,17 +2705,18 @@ class Modulo6_0_Arrhenius:
                 dpdT_s = np.gradient(df_s[dens_col], T_K_s)
             except Exception as e:
                 with self.out:
-                    exibir_erro(f"[ERRO] Ensaio {i+1}: Falha no cálculo dos gradientes - {e}")
+                    exibir_erro(f"[ERRO] Ensaio {i + 1}: Falha no cálculo dos gradientes - {e}")
                 continue
 
             from scipy.interpolate import interp1d
+
             try:
                 f_T = interp1d(df_s[dens_col], T_K_s, bounds_error=False, fill_value="extrapolate")
                 f_dTdt = interp1d(df_s[dens_col], dTdt_s, bounds_error=False, fill_value="extrapolate")
                 f_dpdT = interp1d(df_s[dens_col], dpdT_s, bounds_error=False, fill_value="extrapolate")
             except Exception as e:
                 with self.out:
-                    exibir_erro(f"[ERRO] Ensaio {i+1}: Falha na criação dos interpoladores - {e}")
+                    exibir_erro(f"[ERRO] Ensaio {i + 1}: Falha na criação dos interpoladores - {e}")
                 continue
 
             results_ensaio = []
@@ -2583,7 +2729,7 @@ class Modulo6_0_Arrhenius:
                     dpdT_val = f_dpdT(dens)
                 except Exception as e:
                     with self.out:
-                        exibir_erro(f"[ERRO] Ensaio {i+1}: Erro ao interpolar p/ dens={dens}: {e}")
+                        exibir_erro(f"[ERRO] Ensaio {i + 1}: Erro ao interpolar p/ dens={dens}: {e}")
                     continue
 
                 if T_val <= 0:
@@ -2597,7 +2743,7 @@ class Modulo6_0_Arrhenius:
                     ln_val = np.log(X)
                 except Exception as e:
                     with self.out:
-                        exibir_erro(f"[ERRO] Ensaio {i+1}: Erro ao calcular ln(X) p/ dens={dens}: {e}")
+                        exibir_erro(f"[ERRO] Ensaio {i + 1}: Erro ao calcular ln(X) p/ dens={dens}: {e}")
                     continue
 
                 inv_T = 1.0 / T_val
@@ -2606,8 +2752,9 @@ class Modulo6_0_Arrhenius:
             self.arrhenius_results[i] = results_ensaio
 
         with self.out:
-            exibir_mensagem("[INFO] Parâmetros para Curvas de Arrhenius calculados com 5 densidades igualmente espaçadas. Use Plotar para visualizar.")
-
+            exibir_mensagem(
+                "[INFO] Parâmetros para Curvas de Arrhenius calculados com 5 densidades igualmente espaçadas. Use Plotar para visualizar."
+            )
 
     def _on_export(self, b):
         with self.out:
@@ -2636,20 +2783,17 @@ class Modulo6_0_Arrhenius:
             df_export = pd.concat(df_all, ignore_index=True)
 
             # 3) Usa gerar_link_download para escrever em /tmp e exibir o link
-            link = gerar_link_download(
-                df_export,
-                nome_arquivo="Arrhenius_Results.xlsx"
-            )
+            link = gerar_link_download(df_export, nome_arquivo="Arrhenius_Results.xlsx")
             display(link)
 
             exibir_mensagem("[INFO] Exportação Arrhenius concluída com sucesso!")
-
 
     def get_results(self):
         """
         Retorna o dicionário arrhenius_results calculado.
         """
         return self.arrhenius_results
+
 
 # modulo6.1_arrhenius_display.py
 
@@ -2664,6 +2808,7 @@ from scipy.stats import linregress
 
 # Constante universal dos gases
 R = 8.314
+
 
 class Modulo6_1ArrheniusDisplay:
     """
@@ -2693,7 +2838,7 @@ class Modulo6_1ArrheniusDisplay:
         self._build_ui()
 
     def _build_ui(self):
-        if self.n_ensaios <2:
+        if self.n_ensaios < 2:
             self.main_ui = widgets.HTML("<b>Arrhenius method requires at least 2 tests.</b>")
             return
 
@@ -2713,23 +2858,21 @@ class Modulo6_1ArrheniusDisplay:
         """
         self.html_explanation = widgets.HTML(value=explanation)
 
-        self.btn_plot = widgets.Button(description="Plotar & Mostrar Tabela", button_style='success')
+        self.btn_plot = widgets.Button(description="Plotar & Mostrar Tabela", button_style="success")
         self.btn_plot.on_click(self._on_plot)
 
-        self.btn_export = widgets.Button(description="Exportar Ea e Tabela", button_style='info')
+        self.btn_export = widgets.Button(description="Exportar Ea e Tabela", button_style="info")
         self.btn_export.on_click(self._on_export)
 
-        self.btn_back = widgets.Button(description="Voltar", button_style='warning')
+        self.btn_back = widgets.Button(description="Voltar", button_style="warning")
         self.btn_back.on_click(self._on_back_clicked)
 
-        self.main_ui = widgets.VBox([
-            self.html_explanation,
-            widgets.HBox([self.btn_plot, self.btn_export, self.btn_back]),
-            self.out
-        ])
+        self.main_ui = widgets.VBox(
+            [self.html_explanation, widgets.HBox([self.btn_plot, self.btn_export, self.btn_back]), self.out]
+        )
 
     def display(self):
-        if hasattr(self, 'main_ui'):
+        if hasattr(self, "main_ui"):
             display(self.main_ui)
         else:
             display(widgets.HTML("<b>No interface for Arrhenius display available.</b>"))
@@ -2743,6 +2886,7 @@ class Modulo6_1ArrheniusDisplay:
             return
 
         from collections import defaultdict
+
         dens_map = defaultdict(list)  # Mapear densidade para lista de (invT, lnVal)
 
         # Preenche dens_map com tratamento de exceções (caso algum item não tenha o formato esperado)
@@ -2754,7 +2898,7 @@ class Modulo6_1ArrheniusDisplay:
                     dens, invT, lnVal = item
                     dens_map[dens].append((invT, lnVal))
                 except Exception as e:
-                    exibir_erro(f"[ERRO] Ensaio {i+1}: Item inválido {item} - {e}")
+                    exibir_erro(f"[ERRO] Ensaio {i + 1}: Item inválido {item} - {e}")
                     continue
 
         if not dens_map:
@@ -2762,7 +2906,7 @@ class Modulo6_1ArrheniusDisplay:
             return
 
         try:
-            fig, ax = plt.subplots(figsize=(6,5))
+            fig, ax = plt.subplots(figsize=(6, 5))
             ax.set_title("Arrhenius: ln(...) vs 1/T (Combined)")
             ax.set_xlabel("1/T (1/K)")
             ax.set_ylabel("ln(T·dp/dT·dT/dt)")
@@ -2770,7 +2914,7 @@ class Modulo6_1ArrheniusDisplay:
             exibir_erro(f"[ERRO] Falha na criação do gráfico: {e}")
             return
 
-        colors = ['red', 'blue', 'green', 'orange', 'purple', 'magenta', 'brown', 'gray', 'cyan', 'black']
+        colors = ["red", "blue", "green", "orange", "purple", "magenta", "brown", "gray", "cyan", "black"]
         color_idx = 0
         results = []
 
@@ -2791,13 +2935,13 @@ class Modulo6_1ArrheniusDisplay:
             c = colors[color_idx % len(colors)]
             color_idx += 1
 
-            ax.plot(x_vals, y_vals, 'o', color=c, label=f"{dens}%")
+            ax.plot(x_vals, y_vals, "o", color=c, label=f"{dens}%")
             x_fit = np.linspace(np.min(x_vals), np.max(x_vals), 20)
             y_fit = slope * x_fit + intercept
-            ax.plot(x_fit, y_fit, '-', color=c, label=f"{dens}% (Ea={Ea_calc:.2f} J/mol)")
+            ax.plot(x_fit, y_fit, "-", color=c, label=f"{dens}% (Ea={Ea_calc:.2f} J/mol)")
             results.append((dens, Ea_calc))
 
-        ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+        ax.legend(bbox_to_anchor=(1.05, 1), loc="upper left")
         ax.grid(True)
         plt.tight_layout()
         plt.show()
@@ -2807,7 +2951,6 @@ class Modulo6_1ArrheniusDisplay:
             display(self.results_df)
         else:
             exibir_erro("[ERRO] Pontos insuficientes para regressão.")
-
 
     def _on_export(self, b):
         with self.out:
@@ -2820,15 +2963,10 @@ class Modulo6_1ArrheniusDisplay:
                 return
 
             # 2) Gera o arquivo em /tmp e retorna o link HTML
-            link = gerar_link_download(
-                self.results_df,
-                nome_arquivo="ArrheniusEaTable.xlsx"
-            )
+            link = gerar_link_download(self.results_df, nome_arquivo="ArrheniusEaTable.xlsx")
             display(link)
 
             exibir_mensagem("[INFO] Exportação da tabela de Ea concluída com sucesso!")
-
-
 
     def _on_back_clicked(self, b):
         with self.out:
@@ -2839,6 +2977,7 @@ class Modulo6_1ArrheniusDisplay:
             self.parent.display()
         else:
             exibir_erro("[ERRO] Roteador (parent) não definido.")
+
 
 # modulo7_0_Datahistory.py
 import copy
@@ -2888,6 +3027,7 @@ from IPython.display import display, clear_output
 # Supondo que as classes dos módulos já foram definidas nas células anteriores
 # (Modulo2Importacao, Modulo3Recorte, ModuloLogTheta, Modulo5_1Alinhamento, etc.)
 
+
 class MainInteractive:
     """
     Controlador principal refatorado.
@@ -2922,10 +3062,10 @@ class MainInteractive:
 
         # --- Widgets da UI ---
         self.step_label = widgets.Label("Bem-vindo ao Ogum Sintering!")
-        self.top_next = widgets.Button(description="Próxima Etapa", button_style='success')
-        self.top_back = widgets.Button(description="Voltar", button_style='warning', disabled=True)
-        self.bottom_next = widgets.Button(description="Próxima Etapa", button_style='success')
-        self.bottom_back = widgets.Button(description="Voltar", button_style='warning', disabled=True)
+        self.top_next = widgets.Button(description="Próxima Etapa", button_style="success")
+        self.top_back = widgets.Button(description="Voltar", button_style="warning", disabled=True)
+        self.bottom_next = widgets.Button(description="Próxima Etapa", button_style="success")
+        self.bottom_back = widgets.Button(description="Voltar", button_style="warning", disabled=True)
         self.log_area = widgets.Output()
         self.modules_container = widgets.VBox([])
 
@@ -2936,13 +3076,15 @@ class MainInteractive:
         self.bottom_back.on_click(self._on_back_step)
 
         # Monta layout principal
-        self.main_ui = widgets.VBox([
-            widgets.HBox([self.top_back, self.top_next]),
-            self.step_label,
-            self.log_area,
-            self.modules_container,
-            widgets.HBox([self.bottom_back, self.bottom_next])
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                widgets.HBox([self.top_back, self.top_next]),
+                self.step_label,
+                self.log_area,
+                self.modules_container,
+                widgets.HBox([self.bottom_back, self.bottom_next]),
+            ]
+        )
 
         self._update_nav_buttons()
         # Inicia o fluxo na tela de introdução
@@ -2952,12 +3094,12 @@ class MainInteractive:
         display(self.main_ui)
 
     def _update_nav_buttons(self):
-        self.top_back.disabled = (self.current_step <= 1)
-        self.bottom_back.disabled = (self.current_step <= 1)
+        self.top_back.disabled = self.current_step <= 1
+        self.bottom_back.disabled = self.current_step <= 1
 
     def _show_intro(self):
         """Exibe a tela inicial."""
-        self.current_step = 0 # Define o passo como 0 para a introdução
+        self.current_step = 0  # Define o passo como 0 para a introdução
         intro_text = """
         <h1>Ogum Sintering</h1>
         <p>Aplicação para análise de dados de sinterização. Clique em "Próxima Etapa" para começar.</p>
@@ -2977,7 +3119,8 @@ class MainInteractive:
         self.current_step += 1
 
         if self.current_step == 1:
-            with self.log_area: exibir_mensagem("=== Módulo 2: Importação e Mapeamento ===")
+            with self.log_area:
+                exibir_mensagem("=== Módulo 2: Importação e Mapeamento ===")
             self.mod2 = Modulo2Importacao()
             self.modules_container.children = (self.mod2.main_ui,)
             self.step_label.value = "Passo 1: Importe e mapeie seus dados."
@@ -2986,9 +3129,10 @@ class MainInteractive:
             self.dfs_from_mod2 = self.mod2.get_dfs()
             if not any(df is not None and not df.empty for df in self.dfs_from_mod2):
                 exibir_erro("Nenhum dado válido importado do Módulo 2. Impossível prosseguir.")
-                self.current_step -= 1 # Permanece no passo atual
+                self.current_step -= 1  # Permanece no passo atual
                 return
-            with self.log_area: exibir_mensagem("=== Módulo 3: Recorte e Filtragem ===")
+            with self.log_area:
+                exibir_mensagem("=== Módulo 3: Recorte e Filtragem ===")
             self.mod3 = Modulo3Recorte(self.dfs_from_mod2)
             self.modules_container.children = (self.mod3.main_ui,)
             self.step_label.value = "Passo 2: Filtre e prepare os dados."
@@ -2999,21 +3143,34 @@ class MainInteractive:
                 exibir_erro("Nenhum dado válido após a filtragem do Módulo 3. Impossível prosseguir.")
                 self.current_step -= 1
                 return
-            with self.log_area: exibir_mensagem("=== Escolha do Método de Análise ===")
-            self.radio_m4 = widgets.RadioButtons(options=[("Curva Mestra (LogTheta)", "logtheta"), ("Arrhenius", "arrhenius")], description="Método:")
-            self.btn_m4_confirm = widgets.Button(description="Confirmar Escolha", button_style='info')
+            with self.log_area:
+                exibir_mensagem("=== Escolha do Método de Análise ===")
+            self.radio_m4 = widgets.RadioButtons(
+                options=[("Curva Mestra (LogTheta)", "logtheta"), ("Arrhenius", "arrhenius")], description="Método:"
+            )
+            self.btn_m4_confirm = widgets.Button(description="Confirmar Escolha", button_style="info")
             self.btn_m4_confirm.on_click(self._on_m4_confirm)
-            self.modules_container.children = (widgets.VBox([widgets.HTML("<h3>Escolha o método principal de análise:</h3>"), self.radio_m4, self.btn_m4_confirm]),)
+            self.modules_container.children = (
+                widgets.VBox(
+                    [
+                        widgets.HTML("<h3>Escolha o método principal de análise:</h3>"),
+                        self.radio_m4,
+                        self.btn_m4_confirm,
+                    ]
+                ),
+            )
             self.step_label.value = "Passo 3: Escolha o método."
 
         elif self.current_step == 4:
             if self.mod4_choice == "logtheta":
-                with self.log_area: exibir_mensagem("=== Módulo 4: Cálculo de LogTheta ===")
+                with self.log_area:
+                    exibir_mensagem("=== Módulo 4: Cálculo de LogTheta ===")
                 self.logtheta_module = ModuloLogTheta(self.dfs_from_mod3)
                 self.modules_container.children = (self.logtheta_module.ui,)
                 self.step_label.value = "Passo 4 [MSC]: Calcule o LogTheta para diferentes Energias de Ativação."
             elif self.mod4_choice == "arrhenius":
-                with self.log_area: exibir_mensagem("=== Módulo 6.0: Cálculo para Arrhenius ===")
+                with self.log_area:
+                    exibir_mensagem("=== Módulo 6.0: Cálculo para Arrhenius ===")
                 self.arrhenius_calc_module = Modulo6_0_Arrhenius(self.dfs_from_mod3)
                 self.modules_container.children = (self.arrhenius_calc_module.main_ui,)
                 self.step_label.value = "Passo 4 [Arrhenius]: Execute o cálculo."
@@ -3022,13 +3179,15 @@ class MainInteractive:
             if self.mod4_choice == "logtheta":
                 # ALTERAÇÃO: Pega a nova estrutura de dados
                 self.sintering_records = self.logtheta_module.get_sintering_records()
-                with self.log_area: exibir_mensagem("=== Módulo 5.1: Alinhamento de Curvas ===")
+                with self.log_area:
+                    exibir_mensagem("=== Módulo 5.1: Alinhamento de Curvas ===")
                 self.alinh_module = Modulo5_1Alinhamento(self.sintering_records)
                 self.modules_container.children = (self.alinh_module.main_ui,)
                 self.step_label.value = "Passo 5.1 [MSC]: Alinhe as curvas."
             elif self.mod4_choice == "arrhenius":
                 arr_results = self.arrhenius_calc_module.get_results()
-                with self.log_area: exibir_mensagem("=== Módulo 6.1: Análise de Arrhenius ===")
+                with self.log_area:
+                    exibir_mensagem("=== Módulo 6.1: Análise de Arrhenius ===")
                 self.arrhenius_display_module = Modulo6_1ArrheniusDisplay(arr_results, len(self.dfs_from_mod3))
                 self.modules_container.children = (self.arrhenius_display_module.main_ui,)
                 self.step_label.value = "Passo 5 [Arrhenius]: Análise final."
@@ -3036,7 +3195,8 @@ class MainInteractive:
         elif self.current_step == 6:
             # ALTERAÇÃO: Passa a lista de records para a próxima etapa
             self.sintering_records = self.alinh_module.get_aligned_records()
-            with self.log_area: exibir_mensagem("=== Módulo 5.2: Parâmetros de Densificação (Blaine) ===")
+            with self.log_area:
+                exibir_mensagem("=== Módulo 5.2: Parâmetros de Densificação (Blaine) ===")
             self.blaine_module = Modulo5_2BlaineParameters(self.sintering_records)
             self.modules_container.children = (self.blaine_module.main_ui,)
             self.step_label.value = "Passo 5.2 [MSC]: Calcule os parâmetros Psi e Phi."
@@ -3044,7 +3204,8 @@ class MainInteractive:
         elif self.current_step == 7:
             # ALTERAÇÃO: Passa a lista de records para a próxima etapa
             self.sintering_records = self.blaine_module.get_blaine_records()
-            with self.log_area: exibir_mensagem("=== Módulo 5.3: Ajuste Sigmoidal ===")
+            with self.log_area:
+                exibir_mensagem("=== Módulo 5.3: Ajuste Sigmoidal ===")
             self.sigmoidal_module = Modulo5_3Sigmoides(self.sintering_records)
             self.modules_container.children = (self.sigmoidal_module.main_ui,)
             self.step_label.value = "Passo 5.3 [MSC]: Aplique o ajuste de curva."
@@ -3052,7 +3213,8 @@ class MainInteractive:
         elif self.current_step == 8:
             # ALTERAÇÃO: Passa a lista de records para a próxima etapa
             self.sintering_records = self.sigmoidal_module.get_sigmoidal_records()
-            with self.log_area: exibir_mensagem("=== Módulo 5.4: Roteador de Comparações ===")
+            with self.log_area:
+                exibir_mensagem("=== Módulo 5.4: Roteador de Comparações ===")
             self.roteador_5_4 = Modulo5_4_Roteador(self.sintering_records, controller=self)
             self.modules_container.children = [self.roteador_5_4.main_ui]
             self.step_label.value = "Passo 5.4 [MSC]: Escolha o método final para encontrar a melhor Ea."
@@ -3060,7 +3222,9 @@ class MainInteractive:
         else:
             with self.log_area:
                 exibir_mensagem("Fim do fluxo de análise.")
-            self.modules_container.children = (widgets.HTML("<h2>Análise concluída.</h2><p>Você pode voltar para revisar os passos anteriores.</p>"),)
+            self.modules_container.children = (
+                widgets.HTML("<h2>Análise concluída.</h2><p>Você pode voltar para revisar os passos anteriores.</p>"),
+            )
 
         self._update_nav_buttons()
 
@@ -3084,8 +3248,8 @@ class MainInteractive:
         self.mod4_choice = self.radio_m4.value
         self._on_next_step(None)
 
+
 # Para iniciar a interface no Notebook:
 # Certifique-se de que a classe SinteringDataRecord e todas as classes de módulo
 # estejam definidas em células anteriores antes de executar esta.
-main_app = MainInteractive()
-main_app.display()
+main_app = MainInteractive()main_app.display()

@@ -12,17 +12,21 @@ def test_normalize_columns_basic():
 
 
 def test_orlandini_araujo_filter():
-    df = pd.DataFrame({
-        "Time_s": [0, 1, 2, 11, 12],
-        "Temperature_C": [100, 102, 101, 103, 104],
-        "DensidadePct": [10, 20, 30, 40, 50],
-    })
+    df = pd.DataFrame(
+        {
+            "Time_s": [0, 1, 2, 11, 12],
+            "Temperature_C": [100, 102, 101, 103, 104],
+            "DensidadePct": [10, 20, 30, 40, 50],
+        }
+    )
     filtered = utils.orlandini_araujo_filter(df, bin_size=10)
-    expected = pd.DataFrame({
-        "Time_s": [1.0, 11.5],
-        "Temperature_C": [101.0, 103.5],
-        "DensidadePct": [20.0, 45.0],
-    })
+    expected = pd.DataFrame(
+        {
+            "Time_s": [1.0, 11.5],
+            "Temperature_C": [101.0, 103.5],
+            "DensidadePct": [20.0, 45.0],
+        }
+    )
     pd.testing.assert_frame_equal(filtered.reset_index(drop=True), expected)
 
 
