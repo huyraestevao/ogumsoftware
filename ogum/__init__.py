@@ -13,6 +13,7 @@ from .core import (
     boltzmann_sigmoid,
     generalized_logistic_stable,
 )
+from .utils import normalize_columns
 
 __all__ = [
     "R",
@@ -26,4 +27,5 @@ __all__ = [
     "gerar_link_download",
     "boltzmann_sigmoid",
     "generalized_logistic_stable",
+    "normalize_columns",
 ]

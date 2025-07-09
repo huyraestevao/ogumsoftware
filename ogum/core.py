@@ -9,6 +9,8 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from .utils import normalize_columns
+
 import numpy as np
 import pandas as pd
 try:
@@ -136,4 +138,5 @@ __all__ = [
     "gerar_link_download",
     "boltzmann_sigmoid",
     "generalized_logistic_stable",
+    "normalize_columns",
 ]
