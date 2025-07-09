@@ -1,5 +1,6 @@
 [tool.ruff]
-line-length = 120
+line-length = 88
+exclude = ["ogum/ogum64.py", "ogum/ogum72.py", "ogum/ogum80.py", "ogum/fzea.py"]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]

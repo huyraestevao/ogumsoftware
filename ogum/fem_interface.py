@@ -10,4 +10,5 @@ def create_unit_mesh(mesh_size: float) -> Any:
     Returns:
         A mesh object from FEniCSx.
     """
+    raise NotImplementedError("FEM functionality is not yet implemented.")
 
