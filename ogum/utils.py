@@ -1,8 +1,7 @@
 """Small helper utilities used across the code base."""
 from __future__ import annotations
 
-from typing import Dict, Iterable
-import pandas as pd
+
 
 
 def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd.DataFrame:
@@ -25,4 +24,10 @@ def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd
                 break
     return df.rename(columns=rename_dict)
 
-__all__ = ["normalize_columns"]
+
+
+        )
+
+    dfc = df.copy()
+    dfc["bin"] = np.floor(dfc[time_col] / bin_size).astype(int)
+
