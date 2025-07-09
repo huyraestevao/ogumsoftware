@@ -45,6 +45,7 @@ from scipy.integrate import cumulative_trapezoid as cumtrapz
 
 import sys
 import ogum.utils as core
+from ogum.utils import orlandini_araujo_filter
 sys.modules['ogum.core'] = core
 sys.modules['core'] = core
 
