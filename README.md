@@ -10,6 +10,12 @@ pip install -r requirements.txt
 pytest -q
 ```
 
+Alguns testes de FEM exigem numpy, pandas e fenicsx-dolfinx:
+
+```bash
+pip install numpy pandas fenicsx-dolfinx
+```
+
 ## Estrutura do código
 O diretório `ogum/` reúne os módulos Python gerados a partir dos notebooks em
 `notebooks/`. Esses notebooks são exportados para arquivos `.py` que dependem
