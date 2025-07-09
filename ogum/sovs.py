@@ -17,17 +17,17 @@ class SOVSSolver:
         A: float,
         x0: float = 0.0,
         dx: float = 1e-3,
-        n: float = 1.0,
+        n: float = 0.0,
         R: float = 8.314,
     ) -> None:
         """Create a solver instance.
 
         Args:
             Ea: Activation energy in J/mol.
-            A: Pre-exponential factor (1/s).
+            A: Pre‐exponential factor (1/s).
             x0: Initial relative density fraction.
             dx: Step size used by the integrator.
-            n: Reaction‐order exponent in ``x**n``.
+            n: Reaction‐order exponent in ``x**n`` (default 0 for first‐order kinetics).
             R: Universal gas constant (J/(mol·K)).
         """
         self.Ea = Ea
@@ -68,4 +68,3 @@ class SOVSSolver:
             t_eval=t
         )
         return sol.y[0]
-
