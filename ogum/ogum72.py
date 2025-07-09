@@ -144,15 +144,13 @@ def generalized_logistic_stable(x, A1, A2, x0, b, c):
     log_1_plus_exp_z = np.where(z > 30, z, np.log1p(np.exp(z)))
     denominator = np.exp(c * log_1_plus_exp_z)
     return A2 + (A1 - A2) / (denominator + 1e-12)
-import sys
-sys.modules['core'] = sys.modules[__name__]
 
 # MÓDULO 1_Interface
 # modulo1_interface.py
 
 import numpy as np
 import ipywidgets as widgets
-import core
+from . import core
 from typing import List  # <-- Adicionado para corrigir o NameError
 
 class EaSelectionWidget:
@@ -243,9 +241,9 @@ from IPython.display import display, clear_output, HTML
 from io import BytesIO
 
 # Importando do seu arquivo core
-from core import (
-    DataHistory, criar_titulo, exibir_mensagem, exibir_erro, add_suffix_once
-)
+# # from .core import (
+#     DataHistory, criar_titulo, exibir_mensagem, exibir_erro, add_suffix_once
+# )
 
 class Modulo2Importacao:
     """
@@ -475,9 +473,9 @@ from scipy.interpolate import interp1d, PchipInterpolator, Akima1DInterpolator
 import sys # Importa a biblioteca sys
 
 # Importando do seu arquivo core
-from core import (
-    DataHistory, exibir_mensagem, exibir_erro, gerar_link_download
-)
+# # from .core import (
+#     DataHistory, exibir_mensagem, exibir_erro, gerar_link_download
+# )
 
 def orlandini_araujo_filter(df: pd.DataFrame, bin_size: int = 10) -> pd.DataFrame:
     """
@@ -796,10 +794,10 @@ from collections import defaultdict
 import sys
 
 # Importando do seu arquivo core
-from core import (
-    SinteringDataRecord, EaSelectionWidget, exibir_mensagem, exibir_erro,
-    gerar_link_download, R, cumtrapz
-)
+# # from .core import (
+#     SinteringDataRecord, EaSelectionWidget, exibir_mensagem, exibir_erro,
+#     gerar_link_download, R, cumtrapz
+# )
 
 class ModuloLogTheta:
     """
@@ -950,7 +948,7 @@ from scipy.interpolate import interp1d
 from typing import List
 
 # Importando do seu arquivo core
-from core import SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download
+# from .core import SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download
 
 class Modulo5_1Alinhamento:
     """
@@ -1124,10 +1122,10 @@ from io import BytesIO
 import sys
 
 # Importando do seu arquivo core
-from core import (
-    SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download, DataHistory
-)
-
+# # from .core import (
+#     SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download, DataHistory
+# )
+# 
 class Modulo5_2BlaineParameters:
     """
     Calcula os parâmetros de densificação (Psi e Phi).
@@ -1282,11 +1280,11 @@ import pandas as pd
 from typing import List, Dict
 
 # Importações do core/modulo1
-from core import (
-    SinteringDataRecord, exibir_mensagem, exibir_erro,
-    boltzmann_sigmoid, generalized_logistic_stable
-)
-from scipy.optimize import curve_fit
+# # from .core import (
+#     SinteringDataRecord, exibir_mensagem, exibir_erro,
+#     boltzmann_sigmoid, generalized_logistic_stable
+# )
+# from scipy.optimize import curve_fit
 
 class Modulo5_3Sigmoides:
     """
@@ -1399,7 +1397,7 @@ from collections import defaultdict
 import sys
 
 # Importando do seu arquivo core
-from core import SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download
+# from .core import SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download
 
 class Modulo5_3_1_Revisao:
     """
@@ -1693,7 +1691,7 @@ from typing import List
 
 # As importações abaixo são necessárias para o funcionamento.
 # Elas devem estar definidas em Módulos anteriores do notebook.
-# from core import SinteringDataRecord
+# from .core import SinteringDataRecord
 # from modulo5_4_1_comparaçao import Modulo5_4_1Comparisons
 # from modulo5_4_2_Ref import Modulo5_4_2Ref
 # from modulo5_4_3_blaine_linear import Modulo5_4_3BlaineLinear
@@ -1836,11 +1834,11 @@ import matplotlib.pyplot as plt
 import sys
 
 # Importando do seu arquivo core
-from core import (
-    SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download,
-    boltzmann_sigmoid, generalized_logistic_stable
-)
-
+# # from .core import (
+#     SinteringDataRecord, exibir_mensagem, exibir_erro, gerar_link_download,
+#     boltzmann_sigmoid, generalized_logistic_stable
+# )
+# 
 class Modulo5_4_1Comparisons:
     """
     Submódulo 5.4.1 – Comparações (MRS e MPCD) com exibição de resultados aprimorada.
@@ -2334,11 +2332,11 @@ import matplotlib.pyplot as plt
 import sys
 
 # Importando do seu arquivo core
-from core import (
-    SinteringDataRecord, exibir_mensagem, exibir_erro, R, cumtrapz,
-    boltzmann_sigmoid, generalized_logistic_stable
-)
-
+# # from .core import (
+#     SinteringDataRecord, exibir_mensagem, exibir_erro, R, cumtrapz,
+#     boltzmann_sigmoid, generalized_logistic_stable
+# )
+# 
 class Modulo5_5_Refinamento:
     """
     Módulo 5.5 – Refinamento da Energia de Ativação e Cálculo de Incerteza.
@@ -2932,7 +2930,7 @@ import ipywidgets as widgets
 from IPython.display import display, clear_output
 
 # Import de todos os módulos da aplicação
-from core import exibir_mensagem, exibir_erro
+# from .core import exibir_mensagem, exibir_erro
 from modulo2_importacao import Modulo2Importacao
 from modulo3_filtrorecorte import Modulo3Recorte
 from modulo4_logtheta import ModuloLogTheta
@@ -3161,9 +3159,9 @@ class MainInteractive:
     def trigger_refit(self, p0_overrides):
         self._run_fit_and_show_review(p0_overrides=p0_overrides)
 
-sys.modules['main_interactive'] = sys.modules[__name__]
-main_app = MainInteractive()
-main_app.display()
+# sys.modules['main_interactive'] = sys.modules[__name__]
+# main_app = MainInteractive()
+# main_app.display()
 
 # Lembre-se de adicionar a linha sys.modules['main_interactive'] = sys.modules[__name__]
 # ao final da sua célula no notebook, se ainda não o fez.
@@ -3172,7 +3170,7 @@ import ipywidgets as widgets
 from IPython.display import display, clear_output
 
 # Import de todos os módulos da aplicação
-from core import exibir_mensagem, exibir_erro, criar_caixa_colapsavel
+# from .core import exibir_mensagem, exibir_erro, criar_caixa_colapsavel
 from modulo2_importacao import Modulo2Importacao
 from modulo3_filtrorecorte import Modulo3Recorte
 from modulo4_logtheta import ModuloLogTheta
@@ -3414,7 +3412,6 @@ class MainInteractive:
     def trigger_refit(self, p0_overrides):
         self._run_fit_and_show_review(p0_overrides=p0_overrides)
 
-
-sys.modules['main_interactive'] = sys.modules[__name__]
-main_app = MainInteractive()
-main_app.display()
+# sys.modules['main_interactive'] = sys.modules[__name__]
+# main_app = MainInteractive()
+# main_app.display()
