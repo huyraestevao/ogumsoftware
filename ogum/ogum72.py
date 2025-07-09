@@ -45,7 +45,7 @@ from scipy.integrate import cumulative_trapezoid as cumtrapz
 
 import sys
 import ogum.utils as core
-from ogum.utils import SinteringDataRecord
+
 sys.modules['ogum.core'] = core
 sys.modules['core'] = core
 
