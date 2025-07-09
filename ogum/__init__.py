@@ -13,7 +13,7 @@ from .core import (
     boltzmann_sigmoid,
     generalized_logistic_stable,
 )
-from .utils import normalize_columns
+from .utils import normalize_columns, orlandini_araujo_filter
 
 __all__ = [
     "R",
@@ -28,4 +28,5 @@ __all__ = [
     "boltzmann_sigmoid",
     "generalized_logistic_stable",
     "normalize_columns",
+    "orlandini_araujo_filter",
 ]
