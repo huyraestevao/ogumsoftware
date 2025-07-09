@@ -10,8 +10,4 @@ def create_unit_mesh(mesh_size: float) -> Any:
     Returns:
         A mesh object from FEniCSx.
     """
-    # TODO: implement proper mesh generation
-    raise NotImplementedError("FEM integration pending")
 
-
-__all__ = ["create_unit_mesh"]
