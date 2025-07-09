@@ -131,6 +131,10 @@ def exibir_erro(msg: str) -> None:
 
 
 
+def criar_caixa_colapsavel(
+    titulo: str, conteudo: widgets.Widget, aberto: bool = False
+) -> widgets.Accordion:
+    """Return a collapsible Accordion widget."""
     acc = widgets.Accordion(children=[conteudo])
     acc.set_title(0, titulo)
     if not aberto:
