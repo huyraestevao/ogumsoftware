@@ -5,6 +5,7 @@ from typing import Dict, Iterable
 
 import numpy as np
 import pandas as pd
+import numpy as np
 
 
 def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd.DataFrame:
@@ -29,40 +30,9 @@ def normalize_columns(df: pd.DataFrame, mapping: Dict[str, Iterable[str]]) -> pd
 
 
 def orlandini_araujo_filter(df: pd.DataFrame, bin_size: int = 10) -> pd.DataFrame:
-    """Apply the Orlandini--Araújo smoothing filter.
 
-    The data are grouped by ``bin_size`` seconds using the time column that
-    starts with ``"Time_s"``. Numeric columns are averaged while non-numeric
-    columns keep the first value.
-
-    Parameters
-    ----------
-    df:
-        Input DataFrame containing a time column.
-    bin_size:
-        Width of each time bin in seconds.
-
-    Returns
-    -------
-    pandas.DataFrame
-        The filtered DataFrame.
-    """
-    time_col = next((c for c in df.columns if c.startswith("Time_s")), None)
-    if time_col is None:
-        raise ValueError(
-            "Coluna de tempo (Time_s*) não encontrada para o filtro Orlandini-Araújo."
         )
 
     dfc = df.copy()
     dfc["bin"] = np.floor(dfc[time_col] / bin_size).astype(int)
-    agg_dict = {
-        c: "mean" if pd.api.types.is_numeric_dtype(df[c]) else "first"
-        for c in df.columns
-    }
-    grouped = dfc.groupby("bin").agg(agg_dict).reset_index(drop=True)
-    return grouped
 
-__all__ = [
-    "normalize_columns",
-    "orlandini_araujo_filter",
-]
