@@ -34,18 +34,19 @@ import matplotlib.pyplot as plt
 from dataclasses import dataclass, field
 import pandas as pd
 from typing import List, Any
-
-@dataclass
-class SinteringDataRecord:
-    """
-    Uma estrutura para armazenar um conjunto de dados de sinterização e seus metadados.
-    Isso substitui a necessidade de nomes de colunas complexos.
-    """
-    ensaio_id: int
-    Ea: float
-    tipo_dado_y: str
-    df: pd.DataFrame
-    metadata: dict = field(default_factory=dict)
+from ogum.utils import (
+    SinteringDataRecord,
+    DataHistory,
+    add_suffix_once,
+    criar_titulo,
+    exibir_mensagem,
+    exibir_erro,
+    criar_caixa_colapsavel,
+    gerar_link_download,
+    orlandini_araujo_filter,
+    boltzmann_sigmoid,
+    generalized_logistic_stable,
+)
 
 
 # Importa funções do SciPy para processamento dos dados, filtragem e ajuste de curvas (cruciais para sinterização)
@@ -79,103 +80,6 @@ from IPython.display import display, clear_output, HTML
 R = 8.314  # Constante universal dos gases (J/mol.K) – usada para cálculos termodinâmicos na sinterização
 
 
-# ------------------------------
-#  Funções utilitárias para a interface
-# ------------------------------
-
-
-def add_suffix_once(col: str, suffix: str) -> str:
-    """Retorna a string 'col' com o 'suffix' adicionado, se ela ainda não o possuir."""
-    return col if col.endswith(suffix) else f"{col}{suffix}"
-
-
-def criar_titulo(texto: str, nivel: int = 2) -> widgets.HTML:
-    """
-    Cria um título HTML para a interface, padronizando os cabeçalhos de seção.
-
-    Parâmetros:
-      texto (str): Texto do título.
-      nivel (int): Nível do cabeçalho (1 a 6), definindo sua importância visual.
-
-    Retorna:
-      widgets.HTML: Título formatado para a interface.
-
-    Contexto:
-      Os títulos ajudam a dividir e identificar as etapas do processamento de sinterização,
-      como a construção de curvas mestras.
-    """
-    return widgets.HTML(f"<h{nivel}>{texto}</h{nivel}>")
-
-def exibir_mensagem(msg: str):
-    """
-    Exibe uma mensagem informativa na interface com formatação em azul.
-
-    Parâmetros:
-      msg (str): Mensagem a ser exibida.
-
-    Contexto:
-      Indica progresso ou informações relevantes durante a análise das curvas de sinterização.
-    """
-    display(HTML(f"<p style='color:blue;'>{msg}</p>"))
-
-def exibir_erro(msg: str):
-    """
-    Exibe uma mensagem de erro na interface com destaque em vermelho e negrito.
-
-    Parâmetros:
-      msg (str): Mensagem de erro.
-
-    Contexto:
-      Alerta o usuário sobre problemas críticos durante o processamento dos dados de sinterização.
-    """
-    display(HTML(f"<p style='color:red;font-weight:bold;'>{msg}</p>"))
-
-def criar_caixa_colapsavel(titulo: str, conteudo):
-    """
-    Cria uma caixa colapsável para organizar seções da interface.
-
-    Parâmetros:
-      titulo (str): Título da caixa.
-      conteudo: Widget ou lista de widgets a ser exibido ao expandir a caixa.
-
-    Retorna:
-      widgets.Accordion: Caixa colapsável formatada.
-
-    Contexto:
-      Facilita a organização visual da interface, especialmente quando há várias etapas na
-      construção e análise de curvas de sinterização.
-    """
-    acc = widgets.Accordion(children=[conteudo])
-    acc.set_title(0, titulo)
-    return acc
-
-# ------------------------------
-# 4) Optional Download Utilities
-# ------------------------------
-
-def gerar_link_download(df: pd.DataFrame,
-                        nome_arquivo: str = "dados.xlsx") -> widgets.HTML:
-    """
-    Salva o DataFrame em /tmp e devolve um link que o Voilá serve via /files.
-    Funciona mesmo para arquivos grandes.
-    """
-    # gera nome único para evitar colisão em /tmp
-    uid = uuid4().hex[:6]
-    stem = Path(nome_arquivo).stem
-    final = f"{stem}_{uid}.xlsx"
-    caminho = Path("/tmp") / final
-
-    # escreve no disco
-    with pd.ExcelWriter(caminho, engine="openpyxl") as writer:
-        df.to_excel(writer, index=False)
-
-    # link para /files/tmp/NOME que o Jupyter/Voila já serve como estático
-    html = f"""
-    <a href="/files/tmp/{final}" download="{final}" target="_blank">
-      Clique para baixar {final}
-    </a>
-    """
-    return widgets.HTML(html)
 
 
 # =====================================================================
@@ -640,50 +544,6 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import interp1d
 
-# Supondo que no Módulo 1 você já tenha exibir_mensagem, exibir_erro, gerar_link_download, etc.
-# Aqui coloco stubs para funcionar como exemplo.
-def exibir_mensagem(msg):
-    print(f"[INFO] {msg}")
-
-def exibir_erro(msg):
-    print(f"[ERRO] {msg}")
-
-def gerar_link_download(df, nome_arquivo="dados.xlsx"):
-    """
-    Exemplo de função que gera link para download de um DataFrame em Excel.
-    Você pode adaptar caso já tenha uma implementação.
-    """
-    import base64
-    from io import BytesIO
-    out_buf = BytesIO()
-    with pd.ExcelWriter(out_buf, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False)
-    out_buf.seek(0)
-    b64 = base64.b64encode(out_buf.read()).decode()
-    link_html = f"""
-    <a download="{nome_arquivo}" href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}">
-       Clique aqui para baixar: {nome_arquivo}
-    </a>
-    """
-    return widgets.HTML(link_html)
-
-def orlandini_araujo_filter(df, bin_size=10):
-    # Procura as colunas por prefixo
-    time_col = next((col for col in df.columns if col.startswith('Time_s')), None)
-    temp_col = next((col for col in df.columns if col.startswith('Temperature_C')), None)
-    dens_col = next((col for col in df.columns if col.startswith('DensidadePct')), None)
-
-    if not (time_col and temp_col and dens_col):
-        raise ValueError("Faltam colunas (Time_s, Temperature_C, DensidadePct) p/ Orlandini-Araujo.")
-
-    dfc = df.copy()
-    dfc['bin'] = np.floor(dfc[time_col] / bin_size).astype(int)
-    grouped = dfc.groupby('bin').agg({
-        time_col: 'mean',
-        temp_col: 'mean',
-        dens_col: 'mean'
-    }).reset_index(drop=True)
-    return grouped
 
 
 
@@ -1695,11 +1555,6 @@ from typing import List
 
 # --- Definição da Função Sigmoidal ---
 # (Pode ficar aqui ou em um módulo de utilidades/modelos)
-def boltzmann_sigmoid(x, A1, A2, x0, dx):
-    """ Boltzmann (logística básica): y = A2 + (A1 - A2) / (1 + exp((x - x0)/dx)) """
-    # Salvaguarda contra overflow no exp para valores muito grandes/pequenos de x
-    exp_term = np.exp(np.clip((x - x0) / dx, -700, 700))
-    return A2 + (A1 - A2) / (1 + exp_term)
 
 class Modulo5_3Sigmoides:
     """
@@ -2989,69 +2844,6 @@ class Modulo6_1ArrheniusDisplay:
 import copy
 import datetime
 
-class DataHistory:
-    """
-    Classe para armazenar o histórico dos DataFrames.
-
-    Cada registro armazena:
-      - A cópia profunda do DataFrame (para evitar alterações futuras)
-      - O nome do módulo de onde os dados vieram
-      - Os nomes das colunas no momento do armazenamento
-      - Um timestamp indicando quando o estado foi salvo.
-    """
-    def __init__(self):
-        self.history = []  # Lista para armazenar os registros de histórico
-
-    def push(self, data, module_name):
-        """
-        Salva uma cópia do DataFrame 'data', juntamente com informações do módulo.
-
-        Args:
-            data (DataFrame): O DataFrame a ser armazenado.
-            module_name (str): Uma string identificando de qual módulo os dados vieram.
-        """
-        record = {
-            'timestamp': datetime.datetime.now(),
-            'module': module_name,
-            'columns': list(data.columns),
-            'data': copy.deepcopy(data)
-        }
-        self.history.append(record)
-        print(f"[HISTORY] Dados salvos de '{module_name}' às {record['timestamp']} com colunas: {record['columns']}")
-
-    def pop(self):
-        """
-        Remove e retorna o registro mais recente do histórico.
-
-        Returns:
-            dict: O registro removido ou None se o histórico estiver vazio.
-        """
-        if self.history:
-            record = self.history.pop()
-            print(f"[HISTORY] Dados removidos do histórico de '{record['module']}'")
-            return record
-        print("[HISTORY] Histórico vazio!")
-        return None
-
-    def peek(self):
-        """
-        Retorna o registro mais recente sem removê-lo.
-
-        Returns:
-            dict: O registro mais recente ou None se o histórico estiver vazio.
-        """
-        if self.history:
-            return self.history[-1]
-        return None
-
-    def get_all(self):
-        """
-        Retorna todos os registros de histórico.
-
-        Returns:
-            list: Lista de registros de histórico.
-        """
-        return self.history
 
 # =============================================================================
 # Exemplo de uso:
