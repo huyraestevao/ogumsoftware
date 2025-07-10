@@ -5,6 +5,8 @@ from typing import Dict
 
 from fastapi import APIRouter, BackgroundTasks, status
 from pydantic import BaseModel
+import json
+from pathlib import Path
 
 from fem.solver import run_fem_simulation
 
@@ -29,8 +31,18 @@ def start_fem_simulation(
         request.material_params,
         request.bc_params,
         output_name,
+        job_id,
     )
     return {
         "message": "FEM simulation started in the background.",
         "job_id": job_id,
     }
+
+
+@router.get("/simulation/status/{job_id}")
+def fem_simulation_status(job_id: str) -> dict[str, str]:
+    status_file = Path(f"fem_output/{job_id}.json")
+    if not status_file.exists():
+        return {"status": "pending"}
+    with status_file.open() as f:
+        return json.load(f)
