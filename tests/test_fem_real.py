@@ -1,5 +1,5 @@
 import pytest
-pytest.importorskip("dolfinx")
+
 
 from ogum.fem_interface import create_unit_mesh
 
