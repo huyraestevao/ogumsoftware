@@ -145,9 +145,7 @@ def main() -> None:
                     "bc_params": {"strain_rate": strain_rate},
                 }
                 try:
-                    response = requests.post(
-                        f"{API_URL}/fem/simulation", json=payload
-                    )
+                    response = requests.post(f"{API_URL}/fem/simulation", json=payload)
                     response.raise_for_status()
                     st.session_state.fem_job_id = response.json()["job_id"]
                     st.success(
@@ -157,19 +155,43 @@ def main() -> None:
                     st.error(f"Falha ao iniciar a simulação: {err}")
                     return
 
-            # TODO: substituir espera fixa por verificação do status da tarefa
-            time.sleep(5)
-            img_path = f"fem_output/{st.session_state.fem_job_id}.png"
-            try:
-                st.image(img_path)
-                with open(img_path, "rb") as img_file:
-                    st.download_button(
-                        "Baixar imagem de preview",
-                        data=img_file,
-                        file_name=f"{st.session_state.fem_job_id}.png",
-                    )
-            except FileNotFoundError:
-                st.warning("Arquivo de imagem ainda não disponível.")
+            status_url = (
+                f"{API_URL}/fem/simulation/status/{st.session_state.fem_job_id}"
+            )
+            start = time.time()
+            while True:
+                if time.time() - start > 300:
+                    st.error("Tempo limite excedido ao aguardar a simulação.")
+                    break
+                with st.spinner("Aguardando a finalização da simulação..."):
+                    try:
+                        status_resp = requests.get(status_url)
+                        status_resp.raise_for_status()
+                        status_data = status_resp.json()
+                    except Exception as err:
+                        st.error(f"Falha ao verificar status: {err}")
+                        return
+                status = status_data.get("status")
+                if status == "completed":
+                    st.success("Simulação concluída!")
+                    img_path = status_data.get("image_path")
+                    if img_path:
+                        st.image(img_path)
+                        try:
+                            with open(img_path, "rb") as img_file:
+                                st.download_button(
+                                    "Baixar imagem de preview",
+                                    data=img_file,
+                                    file_name=f"{st.session_state.fem_job_id}.png",
+                                )
+                        except FileNotFoundError:
+                            st.warning("Arquivo de imagem ainda não disponível.")
+                    break
+                elif status == "failed":
+                    st.error(f"Simulação falhou: {status_data.get('error')}")
+                    break
+                else:
+                    time.sleep(2)
 
 
 if __name__ == "__main__":

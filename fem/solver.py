@@ -9,6 +9,7 @@ the top boundary. Results are written to an XDMF file.
 from __future__ import annotations
 
 from pathlib import Path
+import json
 
 import numpy as np
 from mpi4py import MPI
@@ -24,96 +25,118 @@ def run_fem_simulation(
     material_params: dict,
     bc_params: dict,
     output_filename: str,
+    job_id: str,
 ) -> None:
     """Run a uniaxial compression simulation and save the result."""
-    # ------------------------------------------------------------------
-    # Mesh and function space
-    # ------------------------------------------------------------------
-    width = float(mesh_params.get("width", 1.0))
-    height = float(mesh_params.get("height", 1.0))
-    nx = int(mesh_params.get("nx", 20))
-    ny = int(mesh_params.get("ny", 20))
-    domain = mesh.create_rectangle(
-        MPI.COMM_WORLD,
-        [[0.0, 0.0], [width, height]],
-        [nx, ny],
-        mesh.CellType.triangle,
-    )
-    V = fem.VectorFunctionSpace(domain, ("Lagrange", 1))
+    status_path = Path(f"fem_output/{job_id}.json")
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.write_text(json.dumps({"status": "running"}))
 
-    # ------------------------------------------------------------------
-    # Material parameters
-    # ------------------------------------------------------------------
-    eta = float(material_params.get("eta", 1.0))
-    strain_rate = float(bc_params.get("strain_rate", -0.1))
+    try:
+        # ------------------------------------------------------------------
+        # Mesh and function space
+        # ------------------------------------------------------------------
+        width = float(mesh_params.get("width", 1.0))
+        height = float(mesh_params.get("height", 1.0))
+        nx = int(mesh_params.get("nx", 20))
+        ny = int(mesh_params.get("ny", 20))
+        domain = mesh.create_rectangle(
+            MPI.COMM_WORLD,
+            [[0.0, 0.0], [width, height]],
+            [nx, ny],
+            mesh.CellType.triangle,
+        )
+        V = fem.VectorFunctionSpace(domain, ("Lagrange", 1))
 
-    # ------------------------------------------------------------------
-    # Boundary conditions
-    # ------------------------------------------------------------------
-    def bottom(x):
-        return np.isclose(x[1], 0.0)
+        # ------------------------------------------------------------------
+        # Material parameters
+        # ------------------------------------------------------------------
+        eta = float(material_params.get("eta", 1.0))
+        strain_rate = float(bc_params.get("strain_rate", -0.1))
 
-    def top(x):
-        return np.isclose(x[1], height)
+        # ------------------------------------------------------------------
+        # Boundary conditions
+        # ------------------------------------------------------------------
+        def bottom(x):
+            return np.isclose(x[1], 0.0)
 
-    def bottom_left(x):
-        return np.isclose(x[0], 0.0) & np.isclose(x[1], 0.0)
+        def top(x):
+            return np.isclose(x[1], height)
 
-    u_bc_bottom = np.array([0.0], dtype=np.double)
-    u_bc_bottom_left = np.array([0.0, 0.0], dtype=np.double)
-    u_bc_top = np.array([0.0, strain_rate], dtype=np.double)
+        def bottom_left(x):
+            return np.isclose(x[0], 0.0) & np.isclose(x[1], 0.0)
 
-    bc_bottom = fem.dirichletbc(
-        u_bc_bottom, fem.locate_dofs_geometrical(V.sub(1), bottom), V.sub(1)
-    )
-    bc_bottom_left = fem.dirichletbc(
-        u_bc_bottom_left, fem.locate_dofs_geometrical(V.sub(0), bottom_left), V.sub(0)
-    )
-    bc_top = fem.dirichletbc(u_bc_top, fem.locate_dofs_geometrical(V, top), V)
-    bcs = [bc_bottom, bc_bottom_left, bc_top]
+        u_bc_bottom = np.array([0.0], dtype=np.double)
+        u_bc_bottom_left = np.array([0.0, 0.0], dtype=np.double)
+        u_bc_top = np.array([0.0, strain_rate], dtype=np.double)
 
-    # ------------------------------------------------------------------
-    # Variational form
-    # ------------------------------------------------------------------
-    u = fem.Function(V)
-    du = ufl.TrialFunction(V)
-    v = ufl.TestFunction(V)
+        bc_bottom = fem.dirichletbc(
+            u_bc_bottom, fem.locate_dofs_geometrical(V.sub(1), bottom), V.sub(1)
+        )
+        bc_bottom_left = fem.dirichletbc(
+            u_bc_bottom_left,
+            fem.locate_dofs_geometrical(V.sub(0), bottom_left),
+            V.sub(0),
+        )
+        bc_top = fem.dirichletbc(u_bc_top, fem.locate_dofs_geometrical(V, top), V)
+        bcs = [bc_bottom, bc_bottom_left, bc_top]
 
-    def epsilon(u_):
-        return ufl.sym(ufl.grad(u_))
+        # ------------------------------------------------------------------
+        # Variational form
+        # ------------------------------------------------------------------
+        u = fem.Function(V)
+        du = ufl.TrialFunction(V)
+        v = ufl.TestFunction(V)
 
-    def sigma(u_):
-        return 2 * eta * epsilon(u_)
+        def epsilon(u_):
+            return ufl.sym(ufl.grad(u_))
 
-    F = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
-    J = ufl.derivative(F, u, du)
+        def sigma(u_):
+            return 2 * eta * epsilon(u_)
 
-    problem = petsc.NonlinearProblem(fem.form(F), u, bcs=bcs, J=fem.form(J))
-    solver = petsc.NewtonSolver(domain.comm)
-    solver.solve(problem, u)
-    uh = u
+        F = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
+        J = ufl.derivative(F, u, du)
 
-    # ------------------------------------------------------------------
-    # Output
-    # ------------------------------------------------------------------
-    out_path = Path(output_filename)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    with XDMFFile(domain.comm, out_path, "w") as f:
-        f.write_mesh(domain)
-        f.write_function(uh)
+        problem = petsc.NonlinearProblem(fem.form(F), u, bcs=bcs, J=fem.form(J))
+        solver = petsc.NewtonSolver(domain.comm)
+        solver.solve(problem, u)
+        uh = u
 
-    # --------------------------------------------------------------
-    # Preview image
-    # --------------------------------------------------------------
-    if domain.comm.rank == 0:
-        try:
-            grid = pv.read(out_path)
-            plotter = pv.Plotter(off_screen=True)
-            plotter.add_mesh(grid, scalars="u", show_edges=True)
-            plotter.screenshot(str(out_path.with_suffix(".png")))
-            plotter.close()
-        except Exception as exc:  # pragma: no cover - best effort preview
-            print(f"Failed to generate preview: {exc}")
+        # ------------------------------------------------------------------
+        # Output
+        # ------------------------------------------------------------------
+        out_path = Path(output_filename)
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        with XDMFFile(domain.comm, out_path, "w") as f:
+            f.write_mesh(domain)
+            f.write_function(uh)
+
+        # --------------------------------------------------------------
+        # Preview image
+        # --------------------------------------------------------------
+        if domain.comm.rank == 0:
+            try:
+                grid = pv.read(out_path)
+                plotter = pv.Plotter(off_screen=True)
+                plotter.add_mesh(grid, scalars="u", show_edges=True)
+                plotter.screenshot(str(out_path.with_suffix(".png")))
+                plotter.close()
+            except Exception as exc:  # pragma: no cover - best effort preview
+                print(f"Failed to generate preview: {exc}")
+
+        if domain.comm.rank == 0:
+            status_path.write_text(
+                json.dumps(
+                    {
+                        "status": "completed",
+                        "image_path": str(out_path.with_suffix(".png")),
+                        "data_path": str(out_path),
+                    }
+                )
+            )
+    except Exception as exc:  # pragma: no cover - propagate error
+        status_path.write_text(json.dumps({"status": "failed", "error": str(exc)}))
+        raise
 
 
 def main() -> None:
@@ -123,6 +146,7 @@ def main() -> None:
         {"eta": 1.0},
         {"strain_rate": -0.1},
         "fem_output/uniaxial_compression.xdmf",
+        "example",
     )
 
 
