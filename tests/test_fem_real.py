@@ -1,6 +1,3 @@
-import pytest
-
-
 from ogum.fem_interface import create_unit_mesh
 
 def test_unit_mesh_creation():
