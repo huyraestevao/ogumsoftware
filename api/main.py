@@ -6,7 +6,7 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from core.solver import apply_savitzky_golay_filter
+from core.solver import apply_savitzky_golay_filter, calculate_activation_energy
 
 app = FastAPI()
 
@@ -26,6 +26,22 @@ class FilterResponse(BaseModel):
     filtered_data: List[float]
 
 
+class ActivationEnergyRequest(BaseModel):
+    """Input data for activation energy calculation."""
+
+    temperatures: List[float]
+    rates: List[float]
+
+
+class ActivationEnergyResponse(BaseModel):
+    """Results from the activation energy computation."""
+
+    Q: float
+    r_squared: float
+    slope: float
+    intercept: float
+
+
 @app.post("/processing/filter", response_model=FilterResponse)
 def process_filter(request: FilterRequest) -> FilterResponse:
     """Apply Savitzky-Golay filter to ``request.data_points``."""
@@ -37,3 +53,15 @@ def process_filter(request: FilterRequest) -> FilterResponse:
         data_array, window_length=request.window_length, polyorder=request.polyorder
     )
     return FilterResponse(original_data=request.data_points, filtered_data=filtered.tolist())
+
+
+@app.post("/processing/activation-energy", response_model=ActivationEnergyResponse)
+def compute_activation_energy(request: ActivationEnergyRequest) -> ActivationEnergyResponse:
+    """Calculate activation energy ``Q`` from experimental data."""
+    if len(request.temperatures) != len(request.rates):
+        raise HTTPException(status_code=400, detail="temperatures and rates must have the same length")
+
+    temps = np.array(request.temperatures, dtype=float)
+    rates = np.array(request.rates, dtype=float)
+    result = calculate_activation_energy(temps, rates)
+    return ActivationEnergyResponse(**result)
