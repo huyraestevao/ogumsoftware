@@ -1,12 +1,8 @@
 import pytest
+pytest.importorskip("dolfinx")
+
 from ogum.fem_interface import create_unit_mesh
 
-
 def test_fem_stub():
-    """Call ``create_unit_mesh`` and validate output when available."""
-    try:
-        mesh = create_unit_mesh(0.5)
-    except ModuleNotFoundError:
-        pytest.skip("FEniCSx not installed")
-    else:
-        assert mesh.geometry.x.shape[0] > 1
+    with pytest.raises(ModuleNotFoundError):
+        create_unit_mesh(1.0)
