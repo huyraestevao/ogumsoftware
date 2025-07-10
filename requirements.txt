@@ -1,10 +1,22 @@
+# Core scientific and data handling
 numpy
 scipy
 pandas
-matplotlib
-pytest
 openpyxl
-fastapi
-httpx
-fenicsx-dolfinx
+
+# FEM and Visualization
+fenics-dolfinx
 pyvista
+
+# Web API
+fastapi
+uvicorn[standard]
+httpx
+
+# Web UI
+streamlit
+requests
+plotly
+
+# Testing
+pytest
