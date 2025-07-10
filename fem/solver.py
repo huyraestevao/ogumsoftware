@@ -48,11 +48,13 @@ def main() -> None:
     def bottom_left(x):
         return np.isclose(x[0], 0.0) & np.isclose(x[1], 0.0)
 
-    u_bc_bottom = np.array([0.0, 0.0], dtype=np.double)
+    u_bc_bottom = np.array([0.0], dtype=np.double)
     u_bc_bottom_left = np.array([0.0, 0.0], dtype=np.double)
     u_bc_top = np.array([0.0, strain_rate], dtype=np.double)
 
-    bc_bottom = fem.dirichletbc(u_bc_bottom, fem.locate_dofs_geometrical(V, bottom), V)
+    bc_bottom = fem.dirichletbc(
+        u_bc_bottom, fem.locate_dofs_geometrical(V.sub(1), bottom), V.sub(1)
+    )
     bc_bottom_left = fem.dirichletbc(
         u_bc_bottom_left, fem.locate_dofs_geometrical(V.sub(0), bottom_left), V.sub(0)
     )
