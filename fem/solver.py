@@ -18,15 +18,24 @@ from dolfinx.io import XDMFFile
 import ufl
 
 
-def main() -> None:
-    """Run a minimal uniaxial compression simulation."""
-    # ---------------------------------------------------------------------
+def run_fem_simulation(
+    mesh_params: dict,
+    material_params: dict,
+    bc_params: dict,
+    output_filename: str,
+) -> None:
+    """Run a uniaxial compression simulation and save the result."""
+    # ------------------------------------------------------------------
     # Mesh and function space
-    # ---------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    width = float(mesh_params.get("width", 1.0))
+    height = float(mesh_params.get("height", 1.0))
+    nx = int(mesh_params.get("nx", 20))
+    ny = int(mesh_params.get("ny", 20))
     domain = mesh.create_rectangle(
         MPI.COMM_WORLD,
-        [[0.0, 0.0], [1.0, 1.0]],
-        [20, 20],
+        [[0.0, 0.0], [width, height]],
+        [nx, ny],
         mesh.CellType.triangle,
     )
     V = fem.VectorFunctionSpace(domain, ("Lagrange", 1))
@@ -34,8 +43,8 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Material parameters
     # ------------------------------------------------------------------
-    eta = 1.0
-    strain_rate = -0.1
+    eta = float(material_params.get("eta", 1.0))
+    strain_rate = float(bc_params.get("strain_rate", -0.1))
 
     # ------------------------------------------------------------------
     # Boundary conditions
@@ -44,7 +53,7 @@ def main() -> None:
         return np.isclose(x[1], 0.0)
 
     def top(x):
-        return np.isclose(x[1], 1.0)
+        return np.isclose(x[1], height)
 
     def bottom_left(x):
         return np.isclose(x[0], 0.0) & np.isclose(x[1], 0.0)
@@ -86,11 +95,21 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Output
     # ------------------------------------------------------------------
-    out_dir = Path("fem_output")
-    out_dir.mkdir(exist_ok=True)
-    with XDMFFile(domain.comm, out_dir / "uniaxial_compression.xdmf", "w") as f:
+    out_path = Path(output_filename)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with XDMFFile(domain.comm, out_path, "w") as f:
         f.write_mesh(domain)
         f.write_function(uh)
+
+
+def main() -> None:
+    """Entry point for manual execution with default parameters."""
+    run_fem_simulation(
+        {"width": 1.0, "height": 1.0, "nx": 20, "ny": 20},
+        {"eta": 1.0},
+        {"strain_rate": -0.1},
+        "fem_output/uniaxial_compression.xdmf",
+    )
 
 
 if __name__ == "__main__":
