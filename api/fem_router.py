@@ -17,6 +17,8 @@ class FemSimulationRequest(BaseModel):
     mesh_params: Dict[str, float]
     material_params: Dict[str, float]
     bc_params: Dict[str, float]
+    total_time: float
+    num_steps: int
 
 
 @router.post("/simulation", status_code=status.HTTP_202_ACCEPTED)
@@ -32,6 +34,8 @@ def start_fem_simulation(
         request.bc_params,
         output_name,
         job_id,
+        request.total_time,
+        request.num_steps,
     )
     return {
         "message": "FEM simulation started in the background.",
