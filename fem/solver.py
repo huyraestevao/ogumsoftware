@@ -14,6 +14,7 @@ import numpy as np
 from mpi4py import MPI
 from dolfinx import fem, mesh
 from dolfinx.fem import petsc
+from dolfinx.io import XDMFFile
 import ufl
 
 
@@ -81,7 +82,7 @@ def main() -> None:
     # ------------------------------------------------------------------
     out_dir = Path("fem_output")
     out_dir.mkdir(exist_ok=True)
-    with fem.XDMFFile(domain.comm, out_dir / "uniaxial_compression.xdmf", "w") as f:
+    with XDMFFile(domain.comm, out_dir / "uniaxial_compression.xdmf", "w") as f:
         f.write_mesh(domain)
         f.write_function(uh)
 
