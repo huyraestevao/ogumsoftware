@@ -26,8 +26,20 @@ def run_fem_simulation(
     bc_params: dict,
     output_filename: str,
     job_id: str,
+    total_time: float,
+    num_steps: int,
 ) -> None:
-    """Run a uniaxial compression simulation and save the result."""
+    """Run a uniaxial compression simulation and save the result.
+
+    Args:
+        mesh_params: Parameters controlling mesh generation.
+        material_params: Dictionary with material constants.
+        bc_params: Boundary condition parameters.
+        output_filename: Path for the XDMF results file.
+        job_id: Identifier used for status JSON files.
+        total_time: Total simulated time.
+        num_steps: Number of time steps.
+    """
     status_path = Path(f"fem_output/{job_id}.json")
     status_path.parent.mkdir(parents=True, exist_ok=True)
     status_path.write_text(json.dumps({"status": "running"}))
@@ -68,7 +80,7 @@ def run_fem_simulation(
 
         u_bc_bottom = np.array([0.0], dtype=np.double)
         u_bc_bottom_left = np.array([0.0, 0.0], dtype=np.double)
-        u_bc_top = np.array([0.0, strain_rate], dtype=np.double)
+        u_bc_top = fem.Constant(domain, np.array([0.0, 0.0], dtype=np.double))
 
         bc_bottom = fem.dirichletbc(
             u_bc_bottom, fem.locate_dofs_geometrical(V.sub(1), bottom), V.sub(1)
@@ -99,17 +111,17 @@ def run_fem_simulation(
 
         problem = petsc.NonlinearProblem(fem.form(F), u, bcs=bcs, J=fem.form(J))
         solver = petsc.NewtonSolver(domain.comm)
-        solver.solve(problem, u)
-        uh = u
 
-        # ------------------------------------------------------------------
-        # Output
-        # ------------------------------------------------------------------
         out_path = Path(output_filename)
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with XDMFFile(domain.comm, out_path, "w") as f:
             f.write_mesh(domain)
-            f.write_function(uh)
+            dt = total_time / num_steps
+            for step in range(1, num_steps + 1):
+                t = step * dt
+                u_bc_top.value[1] = strain_rate * t
+                solver.solve(problem, u)
+                f.write_function(u, t)
 
         # --------------------------------------------------------------
         # Preview image
@@ -147,6 +159,8 @@ def main() -> None:
         {"strain_rate": -0.1},
         "fem_output/uniaxial_compression.xdmf",
         "example",
+        total_time=1.0,
+        num_steps=10,
     )
 
 
