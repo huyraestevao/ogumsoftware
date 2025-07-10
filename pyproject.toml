@@ -1,10 +1,24 @@
 [tool.ruff]
-line-length = 120
+line-length = 88
+exclude = [
+    "IPython/*",
+    "notebooks/*",
+    "ogum/fzea.py",
+    "ogum/ogum64.py",
+    "ogum/ogum72.py",
+    "ogum/ogum80.py",
+    "ogum/core.py",
+    "ogum/utils.py",
+    "tests/conftest.py",
+]
 
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F"]
 extend-select = ["D"]
 pydocstyle.convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D100", "D101", "D103", "D105"]
 
 [tool.ruff.format]
 

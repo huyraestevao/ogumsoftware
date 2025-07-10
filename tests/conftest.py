@@ -1,14 +1,16 @@
+"""Pytest configuration with lightweight stubs for optional GUI modules."""
+
 import sys
 from pathlib import Path
+import types
 
-# Ensure project root is on sys.path so test modules can import 'ogum'
+# Ensure project root is on sys.path so test modules can import ``ogum``.
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 # Provide minimal stubs for optional GUI dependencies so that modules importing
 # them do not fail during tests.
-import types
 
 if "IPython.display" not in sys.modules:
     display_mod = types.ModuleType("IPython.display")
