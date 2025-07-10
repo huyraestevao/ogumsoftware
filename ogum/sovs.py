@@ -1,5 +1,8 @@
+"""Numerical solver for the Skorohod--Olevsky sintering model."""
+
 import numpy as np
 from scipy.integrate import solve_ivp
+
 
 class SOVSSolver:
     """Integrate the Skorohod–Olevsky (SOVS) sintering model.
@@ -65,6 +68,6 @@ class SOVSSolver:
             fun=lambda tt, xx: self._ode(tt, xx, np.interp(tt, t, T)),
             t_span=(t[0], t[-1]),
             y0=[self.x0],
-            t_eval=t
+            t_eval=t,
         )
         return sol.y[0]

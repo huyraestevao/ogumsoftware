@@ -9,6 +9,7 @@ MODULES = [
     "ogum.fem_interface",
 ]
 
+
 @pytest.mark.parametrize("module_name", MODULES)
 def test_import_module(module_name):
     """Modules should import without raising exceptions."""

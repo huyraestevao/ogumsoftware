@@ -131,13 +131,6 @@ def exibir_erro(msg: str) -> None:
 
 
 
-    acc = widgets.Accordion(children=[conteudo])
-    acc.set_title(0, titulo)
-    if not aberto:
-        acc.selected_index = None
-    return acc
-
-
 def gerar_link_download(df: pd.DataFrame, nome_arquivo: str = "dados.xlsx") -> HTML:
     """Gera link HTML para baixar ``df`` como arquivo Excel."""
     uid = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -204,7 +197,6 @@ __all__ = [
     "criar_titulo",
     "exibir_mensagem",
     "exibir_erro",
-    "criar_caixa_colapsavel",
     "gerar_link_download",
     "boltzmann_sigmoid",
     "generalized_logistic_stable",
