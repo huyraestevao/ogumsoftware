@@ -1,3 +1,5 @@
+"""Streamlit front-end for Ogum Sintering."""
+
 import pandas as pd
 import requests
 import streamlit as st
@@ -128,6 +130,8 @@ def main() -> None:
             ny = st.number_input("Elementos em y", value=20, step=1)
             eta = st.number_input("Viscosidade (eta)", value=1.0)
             strain_rate = st.number_input("Taxa de deformação", value=-0.1)
+            total_time = st.number_input("Tempo total", value=1.0)
+            num_steps = st.number_input("Número de passos", value=10, step=1)
             submitted = st.form_submit_button("Iniciar Simulação FEM")
 
         if submitted:
@@ -143,6 +147,8 @@ def main() -> None:
                     },
                     "material_params": {"eta": eta},
                     "bc_params": {"strain_rate": strain_rate},
+                    "total_time": total_time,
+                    "num_steps": int(num_steps),
                 }
                 try:
                     response = requests.post(f"{API_URL}/fem/simulation", json=payload)
@@ -174,18 +180,18 @@ def main() -> None:
                 status = status_data.get("status")
                 if status == "completed":
                     st.success("Simulação concluída!")
-                    img_path = status_data.get("image_path")
-                    if img_path:
-                        st.image(img_path)
+                    anim_path = status_data.get("animation_path")
+                    if anim_path:
+                        st.image(anim_path)
                         try:
-                            with open(img_path, "rb") as img_file:
+                            with open(anim_path, "rb") as anim_file:
                                 st.download_button(
-                                    "Baixar imagem de preview",
-                                    data=img_file,
-                                    file_name=f"{st.session_state.fem_job_id}.png",
+                                    "Baixar animação",
+                                    data=anim_file,
+                                    file_name=f"{st.session_state.fem_job_id}.gif",
                                 )
                         except FileNotFoundError:
-                            st.warning("Arquivo de imagem ainda não disponível.")
+                            st.warning("Arquivo de animação ainda não disponível.")
                     break
                 elif status == "failed":
                     st.error(f"Simulação falhou: {status_data.get('error')}")
