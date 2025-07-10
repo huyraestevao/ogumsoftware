@@ -3,6 +3,7 @@ import requests
 import streamlit as st
 import plotly.graph_objects as go
 import numpy as np
+import time
 
 API_URL = "http://localhost:8000"
 
@@ -11,8 +12,12 @@ def main() -> None:
     """Render Ogum interface."""
     st.title("Ogum Sintering")
 
-    tab_simulation, tab_analysis = st.tabs(
-        ["1. Simulação de Modelo", "2. Análise de Dados Experimentais"]
+    tab_simulation, tab_analysis, tab_fem = st.tabs(
+        [
+            "1. Simulação de Modelo",
+            "2. Análise de Dados Experimentais",
+            "3. Simulação FEM",
+        ]
     )
 
     with tab_simulation:
@@ -114,6 +119,57 @@ def main() -> None:
                         st.error(f"Erro ao processar os dados: {err}")
             except Exception as err:
                 st.error(f"Falha ao ler o arquivo: {err}")
+
+    with tab_fem:
+        with st.form("fem_form"):
+            largura = st.number_input("Largura", value=1.0)
+            altura = st.number_input("Altura", value=1.0)
+            nx = st.number_input("Elementos em x", value=20, step=1)
+            ny = st.number_input("Elementos em y", value=20, step=1)
+            eta = st.number_input("Viscosidade (eta)", value=1.0)
+            strain_rate = st.number_input("Taxa de deformação", value=-0.1)
+            submitted = st.form_submit_button("Iniciar Simulação FEM")
+
+        if submitted:
+            with st.spinner(
+                "Iniciando a simulação... A tarefa está sendo executada em segundo plano."
+            ):
+                payload = {
+                    "mesh_params": {
+                        "width": largura,
+                        "height": altura,
+                        "nx": int(nx),
+                        "ny": int(ny),
+                    },
+                    "material_params": {"eta": eta},
+                    "bc_params": {"strain_rate": strain_rate},
+                }
+                try:
+                    response = requests.post(
+                        f"{API_URL}/fem/simulation", json=payload
+                    )
+                    response.raise_for_status()
+                    st.session_state.fem_job_id = response.json()["job_id"]
+                    st.success(
+                        f"Simulação enviada com sucesso! Job ID: {st.session_state.fem_job_id}"
+                    )
+                except Exception as err:
+                    st.error(f"Falha ao iniciar a simulação: {err}")
+                    return
+
+            # TODO: substituir espera fixa por verificação do status da tarefa
+            time.sleep(5)
+            img_path = f"fem_output/{st.session_state.fem_job_id}.png"
+            try:
+                st.image(img_path)
+                with open(img_path, "rb") as img_file:
+                    st.download_button(
+                        "Baixar imagem de preview",
+                        data=img_file,
+                        file_name=f"{st.session_state.fem_job_id}.png",
+                    )
+            except FileNotFoundError:
+                st.warning("Arquivo de imagem ainda não disponível.")
 
 
 if __name__ == "__main__":
