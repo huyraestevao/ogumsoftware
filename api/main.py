@@ -6,9 +6,12 @@ import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+from api.fem_router import router as fem_router
+
 from core.solver import apply_savitzky_golay_filter, calculate_activation_energy
 
 app = FastAPI()
+app.include_router(fem_router)
 
 
 class FilterRequest(BaseModel):
