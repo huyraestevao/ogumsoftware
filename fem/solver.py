@@ -15,6 +15,7 @@ from mpi4py import MPI
 from dolfinx import fem, mesh
 from dolfinx.fem import petsc
 from dolfinx.io import XDMFFile
+import pyvista as pv
 import ufl
 
 
@@ -100,6 +101,19 @@ def run_fem_simulation(
     with XDMFFile(domain.comm, out_path, "w") as f:
         f.write_mesh(domain)
         f.write_function(uh)
+
+    # --------------------------------------------------------------
+    # Preview image
+    # --------------------------------------------------------------
+    if domain.comm.rank == 0:
+        try:
+            grid = pv.read(out_path)
+            plotter = pv.Plotter(off_screen=True)
+            plotter.add_mesh(grid, scalars="u", show_edges=True)
+            plotter.screenshot(str(out_path.with_suffix(".png")))
+            plotter.close()
+        except Exception as exc:  # pragma: no cover - best effort preview
+            print(f"Failed to generate preview: {exc}")
 
 
 def main() -> None:
