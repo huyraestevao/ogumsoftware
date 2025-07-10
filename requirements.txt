@@ -4,4 +4,6 @@ pandas
 matplotlib
 pytest
 openpyxl
-# Optional: numpy, pandas, fenicsx-dolfinx for FEM/tests
+fastapi
+httpx
+fenicsx-dolfinx

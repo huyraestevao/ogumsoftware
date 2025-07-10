@@ -10,10 +10,10 @@ pip install -r requirements.txt
 pytest -q
 ```
 
-Alguns testes de FEM exigem numpy, pandas e fenicsx-dolfinx:
+Alguns testes de FEM e da API exigem dependências extras:
 
 ```bash
-pip install numpy pandas fenicsx-dolfinx
+pip install fenicsx-dolfinx fastapi httpx
 ```
 
 ## Estrutura do código
