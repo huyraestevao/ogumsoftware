@@ -62,7 +62,8 @@ def main() -> None:
     # ------------------------------------------------------------------
     # Variational form
     # ------------------------------------------------------------------
-    u = ufl.TrialFunction(V)
+    u = fem.Function(V)
+    du = ufl.TrialFunction(V)
     v = ufl.TestFunction(V)
 
     def epsilon(u_):
@@ -72,9 +73,12 @@ def main() -> None:
         return 2 * eta * epsilon(u_)
 
     F = ufl.inner(sigma(u), epsilon(v)) * ufl.dx
+    J = ufl.derivative(F, u, du)
 
-    problem = petsc.LinearProblem(F, bcs=bcs)
-    uh = problem.solve()
+    problem = petsc.NonlinearProblem(fem.form(F), u, bcs=bcs, J=fem.form(J))
+    solver = petsc.NewtonSolver(domain.comm)
+    solver.solve(problem, u)
+    uh = u
 
     # ------------------------------------------------------------------
     # Output
