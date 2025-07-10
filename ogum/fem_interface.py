@@ -1,8 +1,8 @@
 from typing import Any
 
+
 def create_unit_mesh(mesh_size: float) -> Any:
-    """
-    Gera uma malha unitária quadrada de passo `mesh_size` usando FEniCSx.
+    """Gera uma malha unitária quadrada de passo `mesh_size` usando FEniCSx.
 
     Args:
         mesh_size: tamanho do elemento de malha (ex.: 0.1 para 10×10 células).
