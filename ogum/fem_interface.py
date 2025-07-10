@@ -1,40 +1,23 @@
-"""Stub interface for optional FEniCSx integration."""
-
 from typing import Any
 
-try:  # pragma: no cover - optional dependency
-    from dolfinx.mesh import create_rectangle, CellType
-    from mpi4py import MPI
-    import numpy as np
-except Exception:  # pragma: no cover - optional dependency
-    create_rectangle = None  # type: ignore
-    CellType = None  # type: ignore
-    MPI = None  # type: ignore
-    np = None  # type: ignore
-
-
 def create_unit_mesh(mesh_size: float) -> Any:
-    """Create a simple unit mesh using FEniCSx.
+    """
+    Gera uma malha unitária quadrada de passo `mesh_size` usando FEniCSx.
 
     Args:
-        mesh_size: Desired element size of the mesh.
+        mesh_size: tamanho do elemento de malha (ex.: 0.1 para 10×10 células).
 
     Returns:
-        A mesh object from FEniCSx.
+        Mesh do Dolfinx.
     """
     try:
-        if None in {create_rectangle, CellType, MPI, np}:
-            raise ImportError
+        from mpi4py import MPI
+        from dolfinx.mesh import create_rectangle, CellType
+    except ImportError as e:
+        raise ModuleNotFoundError("fenicsx not installed") from e
 
-        n = int(1 / mesh_size)
-        if n < 1:
-            n = 1
-
-        return create_rectangle(
-            MPI.COMM_WORLD,
-            np.array([[0, 0], [1, 1]], dtype=float),
-            [n, n],
-            CellType.triangle,
-        )
-    except ImportError as exc:
-        raise ModuleNotFoundError("fenicsx not installed") from exc
+    # domínio unitário [0,1]×[0,1]
+    domain = [[0.0, 0.0], [1.0, 1.0]]
+    n = max(1, int(1.0 / mesh_size))
+    mesh = create_rectangle(MPI.COMM_WORLD, domain, [n, n], CellType.triangle)
+    return mesh
