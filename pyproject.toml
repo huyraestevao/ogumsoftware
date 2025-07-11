@@ -3,6 +3,7 @@ line-length = 88
 exclude = [
     "IPython/*",
     "notebooks/*",
+    "*.ipynb",
     "ogum/core.py",
     "ogum/utils.py",
     "tests/conftest.py",
