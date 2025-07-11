@@ -22,3 +22,6 @@ plotly
 
 # Testing
 pytest
+pytest-cov
+codecov
+
