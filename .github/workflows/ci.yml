@@ -9,22 +9,29 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    strategy:
+      matrix:
+        python-version: [ '3.11' ]
 
-      - name: Set up Python
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
 
       # ---------- Dependências ----------
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install ruff
-          # FEM (opcionais – testes falham se faltarem)
-          pip install fenicsx-dolfinx mpi4py || true   # não quebra se binário não existir
+          pip install ruff scikit-learn
+
+      - name: Install optional FEM dependencies
+        run: |
+          pip install fenicsx-dolfinx mpi4py || echo "FEM deps not available, skipping"
 
       # ---------- Lint ----------
       - name: Ruff lint & format check
@@ -33,5 +40,6 @@ jobs:
           ruff format --check .
 
       # ---------- Testes ----------
-      - name: Run tests
-        run: pytest -q
+      - name: Run pytest
+        run: |
+          pytest -q --maxfail=1 --disable-warnings
