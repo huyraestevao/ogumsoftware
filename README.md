@@ -1,5 +1,7 @@
 # Ogum Sintering – versão clean 🚀
 [![CI](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml/badge.svg)](https://github.com/huyraestevao/ogumsoftware/actions/workflows/ci.yml) [![pytest](https://github.com/huyraestevao/ogumsoftware/actions/workflows/pytest.yml/badge.svg)](https://github.com/huyraestevao/ogumsoftware/actions/workflows/pytest.yml)
+[![codecov](https://img.shields.io/codecov/c/github/huyraestevao/ogumsoftware/main.svg)](https://codecov.io/gh/huyraestevao/ogumsoftware)
+
 
 Este repositório contém quatro experimentos (64, 72, 80 e FZEA) em formato
 Jupyter (`notebooks/`) e seus correspondentes módulos Python (`ogum/`).
