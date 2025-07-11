@@ -26,7 +26,7 @@ jobs:
           # Instala as dependências de produção e desenvolvimento
           pip install -r requirements.txt
           # É uma boa prática ter um requirements-dev.txt, mas por agora instalamos manualmente
-          pip install pytest pytest-cov ruff matplotlib scipy
+          pip install pytest pytest-cov ruff
 
       - name: Install local package 'ogum'
         run: pip install -e .
