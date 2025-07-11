@@ -50,7 +50,7 @@ from ogum.utils import (
 
 
 # Importa funções do SciPy para processamento dos dados, filtragem e ajuste de curvas (cruciais para sinterização)
-from scipy.signal import savgol_filter
+from ogum.utils import savgol_filter
 from scipy.interpolate import interp1d
 
 try:
@@ -589,7 +589,7 @@ import numpy as np
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import matplotlib.pyplot as plt
-from scipy.signal import savgol_filter
+from ogum.utils import savgol_filter
 from scipy.interpolate import interp1d
 
 
@@ -866,7 +866,9 @@ class Modulo3Recorte:
                         exibir_erro(f"Ensaio {idx + 1}: Poucos pontos p/ Savitzky-Golay.")
                         return
                     w = min(11, (len(dfi) // 2) * 2 + 1)
-                    dfi[dens_col] = savgol_filter(dfi[dens_col], w, 2)
+                    dfi[dens_col] = savgol_filter(
+                        dfi[[dens_col]], window=w, polyorder=2
+                    )[dens_col]
                     exibir_mensagem(f"Ensaio {idx + 1}: Savitzky-Golay aplicado (window={w}).")
                 elif method in ("linear", "cubic"):
                     # Atualize o drop_duplicates para usar a coluna de tempo dinamicamente

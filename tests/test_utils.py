@@ -1,5 +1,6 @@
 import pandas as pd
 import pytest
+from scipy.signal import savgol_filter as scipy_savgol
 
 from ogum import utils
 
@@ -34,3 +35,15 @@ def test_orlandini_missing_columns():
     df = pd.DataFrame({"Time_s": [0], "Temperature_C": [100]})
     with pytest.raises(ValueError):
         utils.orlandini_araujo_filter(df)
+
+
+def test_savgol_filter_basic():
+    df = pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [10, 11, 12, 13, 14]})
+    result = utils.savgol_filter(df, window=5, polyorder=2)
+    expected = pd.DataFrame(
+        {
+            "A": scipy_savgol(df["A"].to_numpy(), 5, 2),
+            "B": scipy_savgol(df["B"].to_numpy(), 5, 2),
+        }
+    )
+    pd.testing.assert_frame_equal(result, expected)
