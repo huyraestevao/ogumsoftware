@@ -15,6 +15,7 @@ from .sovs import SOVSSolver
 
 import numpy as np
 import pandas as pd
+from scipy.integrate import cumulative_trapezoid as cumtrapz
 
 try:
     from IPython.display import HTML, display
@@ -202,4 +203,5 @@ __all__ = [
     "generalized_logistic_stable",
     "SOVSSolver",
     "normalize_columns",
+    "cumtrapz",
 ]

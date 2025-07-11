@@ -7,6 +7,7 @@ MODULES = [
     "ogum.utils",
     "ogum.sovs",
     "ogum.fem_interface",
+    "ogum.processing",
 ]
 
 
