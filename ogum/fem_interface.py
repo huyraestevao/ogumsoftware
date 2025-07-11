@@ -1,6 +1,7 @@
 """Interface utilities for running finite element simulations."""
 
 from typing import Any, List, Tuple
+from threading import Thread
 
 import numpy as np
 
@@ -64,3 +65,50 @@ def densify_mesh(
         densities.append(rho[-1])
 
     return np.array(densities)
+
+
+def densify_mesh_async(
+    mesh: Any,
+    temperature_history: List[Tuple[float, float]],
+    solver_options: dict | None = None,
+    callback: callable | None = None,
+) -> tuple[Thread, dict]:
+    """Execute :func:`densify_mesh` in a separate thread.
+
+    Parameters
+    ----------
+    mesh : dolfinx.mesh.Mesh
+        Mesh used for the calculation.
+    temperature_history : list of (time_s, temp_C)
+        Thermal history ``T(t)``.
+    solver_options : dict, optional
+        Extra options for :class:`~ogum.sovs.SOVSSolver`.
+    callback : callable, optional
+        Function called when the computation finishes. It receives the result
+        dictionary as a single argument.
+
+    Returns
+    -------
+    (Thread, dict)
+        The started thread and a dictionary containing ``densities`` or
+        ``error`` keys.
+    """
+
+    result: dict = {"densities": None, "error": None}
+
+    def _target() -> None:
+        try:
+            result["densities"] = densify_mesh(
+                mesh, temperature_history, solver_options
+            )
+        except Exception as exc:  # pragma: no cover - best effort
+            result["error"] = exc
+        if callback is not None:
+            callback(result)
+
+    thread = Thread(target=_target, daemon=True)
+    thread.start()
+    return thread, result
+
+
+__all__ = ["create_unit_mesh", "densify_mesh", "densify_mesh_async"]
