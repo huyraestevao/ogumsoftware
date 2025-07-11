@@ -3001,6 +3001,7 @@ from modulo5_4_roteador import Modulo5_4_Roteador
 from modulo5_5_refinamento import Modulo5_5_Refinamento
 from modulo6_0_arrhenius import Modulo6_0_Arrhenius
 from modulo6_1_arrhenius_display import Modulo6_1ArrheniusDisplay
+from .final_report import FinalReportModule
 
 # Utilitários de interface do seu arquivo core
 # from .core import exibir_mensagem, exibir_erro
@@ -3035,9 +3036,18 @@ class MainInteractive:
             "REVIEW",
             "FINAL_ANALYSIS",
             "REFINEMENT",
+            "STATISTICAL_REPORT",
         ]
 
-        self.arrhenius_sequence = ["INTRO", "IMPORT", "FILTER", "METHOD_CHOICE", "ARRHENIUS_CALC", "ARRHENIUS_DISPLAY"]
+        self.arrhenius_sequence = [
+            "INTRO",
+            "IMPORT",
+            "FILTER",
+            "METHOD_CHOICE",
+            "ARRHENIUS_CALC",
+            "ARRHENIUS_DISPLAY",
+            "STATISTICAL_REPORT",
+        ]
 
         # Widgets da UI
         self._build_ui()
@@ -3125,6 +3135,7 @@ class MainInteractive:
             "REVIEW": self._run_fit_and_show_review,
             "FINAL_ANALYSIS": self._show_final_analysis_router,
             "REFINEMENT": self.show_refinement_module,
+            "STATISTICAL_REPORT": self._show_statistical_report,
         }
 
         # Executa a função correspondente ao passo
@@ -3279,6 +3290,12 @@ class MainInteractive:
             parent=self,
         )
         self.modules_container.children = (self.modules["refinement"].main_ui,)
+        self._update_nav_buttons()
+
+    def _show_statistical_report(self):
+        self.step_label.value = "<h3>Passo 12: Relatório Estatístico</h3>"
+        self.modules["final_report"] = FinalReportModule(self.sintering_records)
+        self.modules_container.children = (self.modules["final_report"].main_ui,)
         self._update_nav_buttons()
 
     def trigger_refit(self, p0_overrides):
