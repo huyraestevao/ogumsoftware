@@ -37,7 +37,9 @@ class MaterialCalibrator:
             self.experiments = list(experiments)
 
     @staticmethod
-    def fit(experiments: Union[pd.DataFrame, List[pd.DataFrame]]) -> Tuple[float, float]:
+    def fit(
+        experiments: Union[pd.DataFrame, List[pd.DataFrame]],
+    ) -> Tuple[float, float]:
         """Return ``(Ea_kj, A)`` fitted from the provided experiments.
 
         The regression is performed on ``ln(dens_rate / (1-x))`` versus ``1/T``,
@@ -54,7 +56,11 @@ class MaterialCalibrator:
         Tuple[float, float]
             Estimated activation energy in kJ/mol and pre-exponential factor.
         """
-        exps = [experiments] if isinstance(experiments, pd.DataFrame) else list(experiments)
+        exps = (
+            [experiments]
+            if isinstance(experiments, pd.DataFrame)
+            else list(experiments)
+        )
         xs: List[np.ndarray] = []
         ys: List[np.ndarray] = []
 
@@ -82,7 +88,9 @@ class MaterialCalibrator:
         A = float(np.exp(intercept))
         return Ea, A
 
-    def simulate_synthetic(self, ea: float, a: float, time_array: np.ndarray) -> pd.DataFrame:
+    def simulate_synthetic(
+        self, ea: float, a: float, time_array: np.ndarray
+    ) -> pd.DataFrame:
         """Generate synthetic experiment data.
 
         Parameters
@@ -124,5 +132,6 @@ class MaterialCalibrator:
         ea, _ = self.fit(self.experiments)
         frames = [calculate_log_theta(df, ea) for df in self.experiments]
         return pd.concat(frames, ignore_index=True)
+
 
 __all__ = ["MaterialCalibrator"]

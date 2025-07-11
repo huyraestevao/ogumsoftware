@@ -1,12 +1,14 @@
+"""FastAPI router exposing FEM simulation endpoints."""
+
 from __future__ import annotations
 
+import json
 import uuid
+from pathlib import Path
 from typing import Dict
 
 from fastapi import APIRouter, BackgroundTasks, status
 from pydantic import BaseModel
-import json
-from pathlib import Path
 
 from fem.solver import run_fem_simulation
 
@@ -14,6 +16,8 @@ router = APIRouter(prefix="/fem")
 
 
 class FemSimulationRequest(BaseModel):
+    """Input data for a new FEM simulation."""
+
     mesh_params: Dict[str, float]
     material_params: Dict[str, float]
     bc_params: Dict[str, float]
@@ -25,6 +29,7 @@ class FemSimulationRequest(BaseModel):
 def start_fem_simulation(
     request: FemSimulationRequest, background_tasks: BackgroundTasks
 ) -> dict[str, str]:
+    """Start a FEM simulation in a background task."""
     job_id = str(uuid.uuid4())
     output_name = f"fem_output/{job_id}.xdmf"
     background_tasks.add_task(
@@ -45,6 +50,7 @@ def start_fem_simulation(
 
 @router.get("/simulation/status/{job_id}")
 def fem_simulation_status(job_id: str) -> dict[str, str]:
+    """Return the status of a previously started FEM job."""
     status_file = Path(f"fem_output/{job_id}.json")
     if not status_file.exists():
         return {"status": "pending"}

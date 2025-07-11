@@ -1,3 +1,5 @@
+"""Main FastAPI application exposing processing and FEM endpoints."""
+
 from __future__ import annotations
 
 from typing import List
@@ -49,20 +51,28 @@ class ActivationEnergyResponse(BaseModel):
 def process_filter(request: FilterRequest) -> FilterResponse:
     """Apply Savitzky-Golay filter to ``request.data_points``."""
     if request.window_length <= 0 or request.window_length % 2 == 0:
-        raise HTTPException(status_code=400, detail="window_length must be a positive odd integer")
+        raise HTTPException(
+            status_code=400, detail="window_length must be a positive odd integer"
+        )
 
     data_array = np.array(request.data_points, dtype=float)
     filtered = apply_savitzky_golay_filter(
         data_array, window_length=request.window_length, polyorder=request.polyorder
     )
-    return FilterResponse(original_data=request.data_points, filtered_data=filtered.tolist())
+    return FilterResponse(
+        original_data=request.data_points, filtered_data=filtered.tolist()
+    )
 
 
 @app.post("/processing/activation-energy", response_model=ActivationEnergyResponse)
-def compute_activation_energy(request: ActivationEnergyRequest) -> ActivationEnergyResponse:
+def compute_activation_energy(
+    request: ActivationEnergyRequest,
+) -> ActivationEnergyResponse:
     """Calculate activation energy ``Q`` from experimental data."""
     if len(request.temperatures) != len(request.rates):
-        raise HTTPException(status_code=400, detail="temperatures and rates must have the same length")
+        raise HTTPException(
+            status_code=400, detail="temperatures and rates must have the same length"
+        )
 
     temps = np.array(request.temperatures, dtype=float)
     rates = np.array(request.rates, dtype=float)

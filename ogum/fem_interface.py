@@ -1,3 +1,5 @@
+"""Interface utilities for running finite element simulations."""
+
 from typing import Any, List, Tuple
 
 import numpy as np
@@ -41,7 +43,7 @@ def densify_mesh(
     solver_options : dict, optional
         Parâmetros adicionais para ``SOVSSolver``.
 
-    Returns
+    Returns:
     -------
     np.ndarray
         Array de densidade final para cada célula da malha.
