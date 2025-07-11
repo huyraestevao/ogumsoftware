@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  ogum-voila:
+    build: .
+    ports:
+      - "8866:8866"
+    volumes:
+      - .:/app
