@@ -40,6 +40,6 @@ jobs:
           ruff format --check .
 
       # ---------- Testes ----------
-      - name: Run pytest
+      - name: Run pytest with coverage
         run: |
-          pytest -q --maxfail=1 --disable-warnings
+          pytest --maxfail=1 --disable-warnings --cov=ogum --cov-report=xml
