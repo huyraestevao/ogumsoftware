@@ -6,6 +6,9 @@
 Este repositório contém quatro experimentos (64, 72, 80 e FZEA) em formato
 Jupyter (`notebooks/`) e seus correspondentes módulos Python (`ogum/`).
 
+## 🚀 Acesso Online
+Acesse a versão online do Ogum Software [aqui](URL_DO_SEU_CLOUD_RUN).
+
 ## Instalação rápida
 ```bash
 pip install -r requirements.txt
