@@ -2,20 +2,28 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Callable, List, Optional
 
 import ipywidgets as widgets
 from IPython.display import clear_output
 
-from .core import SinteringDataRecord
+from .core import SinteringDataRecord, exibir_mensagem, exibir_erro
 
 
 class FinalReportModule:
     """UI module to generate statistical HTML reports."""
 
-    def __init__(self, sintering_records: List[SinteringDataRecord]):
+    def __init__(
+        self,
+        sintering_records: List[SinteringDataRecord],
+        *,
+        on_busy: Optional[Callable[[bool, str], None]] = None,
+        log_output: Optional[widgets.Output] = None,
+    ) -> None:
         """Initialize the report with a list of sintering records."""
         self.sintering_records = list(sintering_records)
+        self.on_busy = on_busy
+        self.log_output = log_output
         self._build_ui()
 
     def _build_ui(self) -> None:
@@ -34,6 +42,8 @@ class FinalReportModule:
         )
 
     def _on_generate_report(self, _=None) -> None:
+        if self.on_busy:
+            self.on_busy(True, "Gerando relatório...")
         with self.out:
             clear_output()
             try:
@@ -67,5 +77,10 @@ class FinalReportModule:
                 }
                 html = generate_report(results, output="html")
                 self.report_html.value = html
+                exibir_mensagem("Relatório gerado com sucesso", self.log_output)
             except Exception as exc:  # pragma: no cover - visual feedback only
-                self.report_html.value = f"<b>Erro ao gerar relat\u00f3rio: {exc}</b>"
+                self.report_html.value = f"<b>Erro ao gerar relatório: {exc}</b>"
+                exibir_erro(str(exc), self.log_output)
+            finally:
+                if self.on_busy:
+                    self.on_busy(False, "")

@@ -113,23 +113,40 @@ def criar_titulo(texto: str, nivel: int = 2) -> widgets.HTML:
     return widgets.HTML(f"<h{nivel}>{texto}</h{nivel}>")
 
 
-def exibir_mensagem(msg: str) -> None:
+def exibir_mensagem(msg: str, log_widget: widgets.Output | None = None) -> None:
     """Display a blue informational message in the notebook output.
 
-    Args:
-        msg (str): Message to be shown.
+    Parameters
+    ----------
+    msg : str
+        Message to be shown.
+    log_widget : widgets.Output, optional
+        If provided, the HTML message is printed inside this widget.
     """
-    display(HTML(f"<p style='color:blue; font-style:italic;'>{msg}</p>"))
+    html = HTML(f"<p style='color:blue; font-style:italic;'>{msg}</p>")
+    if log_widget:
+        with log_widget:
+            display(html)
+    else:
+        display(html)
 
 
-def exibir_erro(msg: str) -> None:
+def exibir_erro(msg: str, log_widget: widgets.Output | None = None) -> None:
     """Display an error message in bold red text.
 
-    Args:
-        msg (str): Message describing the error.
+    Parameters
+    ----------
+    msg : str
+        Message describing the error.
+    log_widget : widgets.Output, optional
+        If provided, the HTML message is printed inside this widget.
     """
-    display(HTML(f"<p style='color:red; font-weight:bold;'>ERRO: {msg}</p>"))
-
+    html = HTML(f"<p style='color:red; font-weight:bold;'>ERRO: {msg}</p>")
+    if log_widget:
+        with log_widget:
+            display(html)
+    else:
+        display(html)
 
 
 def gerar_link_download(df: pd.DataFrame, nome_arquivo: str = "dados.xlsx") -> HTML:
