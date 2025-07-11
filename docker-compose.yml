@@ -1,8 +1,13 @@
 version: "3.8"
 services:
-  ogum-voila:
+  voila_app:
     build: .
+    command: voila --no-browser --Voila.ip=0.0.0.0 notebooks/FEM_example.ipynb
     ports:
       - "8866:8866"
-    volumes:
-      - .:/app
+
+  api_service:
+    build: .
+    command: uvicorn ogum.api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
