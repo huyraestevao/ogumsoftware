@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [ '3.11' ]
+        python-version: ['3.11']
 
     steps:
       - name: Checkout code
@@ -39,7 +39,15 @@ jobs:
           ruff check .
           ruff format --check .
 
-      # ---------- Testes ----------
+      # ---------- Testes com Coverage ----------
       - name: Run pytest with coverage
         run: |
           pytest --maxfail=1 --disable-warnings --cov=ogum --cov-report=xml
+
+      # ---------- Upload to Codecov ----------
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage.xml
+          fail_ci_if_error: true
+
