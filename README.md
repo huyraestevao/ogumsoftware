@@ -29,9 +29,10 @@ Acesse a versão hospedada do Ogum Software no Cloud Run [aqui](URL_DO_SEU_CLOUD
 ```bash
 docker-compose up --build
 ```
-Isso inicia dois serviços:
-- Voila em [http://localhost:8866](http://localhost:8866)
-- API em [http://localhost:8000](http://localhost:8000) com docs em [http://localhost:8000/docs](http://localhost:8000/docs)
+O comando agora executa a aplicação interativa completa.
+Você acessa a interface Voila em [http://localhost:8866](http://localhost:8866)
+e a API em [http://localhost:8000](http://localhost:8000) com docs em
+[http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Estrutura do código
 O diretório `ogum/` reúne os módulos Python gerados a partir dos notebooks em

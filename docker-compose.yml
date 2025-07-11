@@ -2,7 +2,7 @@ version: "3.8"
 services:
   voila_app:
     build: .
-    command: voila --no-browser --Voila.ip=0.0.0.0 notebooks/FEM_example.ipynb
+    command: voila --no-browser --Voila.ip=0.0.0.0 app.ipynb
     ports:
       - "8866:8866"
 
