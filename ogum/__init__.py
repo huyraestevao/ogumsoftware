@@ -15,6 +15,7 @@ from .core import (
 )
 from .utils import normalize_columns, orlandini_araujo_filter
 from .processing import calculate_log_theta
+from .material_calibrator import MaterialCalibrator
 
 __all__ = [
     "R",
@@ -31,4 +32,5 @@ __all__ = [
     "normalize_columns",
     "orlandini_araujo_filter",
     "calculate_log_theta",
+    "MaterialCalibrator",
 ]
