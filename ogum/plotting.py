@@ -1,3 +1,5 @@
+"""Plotting helpers for visualizing sintering experiments."""
+
 import matplotlib.pyplot as plt
 import pandas as pd
 from typing import Optional, Sequence, Tuple
@@ -16,7 +18,8 @@ def plot_sintering_curves(
     ax : matplotlib.axes.Axes, optional
         Axis to draw the first subplot on. When ``None`` a new figure is
         created.
-    Returns
+
+    Returns:
     -------
     (figure, axes)
         The created figure and list of axes.

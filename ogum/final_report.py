@@ -1,3 +1,5 @@
+"""Widgets utilities for creating interactive final reports."""
+
 from __future__ import annotations
 
 from typing import List
@@ -12,6 +14,7 @@ class FinalReportModule:
     """UI module to generate statistical HTML reports."""
 
     def __init__(self, sintering_records: List[SinteringDataRecord]):
+        """Initialize the report with a list of sintering records."""
         self.sintering_records = list(sintering_records)
         self._build_ui()
 
@@ -22,23 +25,26 @@ class FinalReportModule:
         self.btn_generate.on_click(self._on_generate_report)
         self.out = widgets.Output()
         self.report_html = widgets.HTML()
-        self.main_ui = widgets.VBox([
-            self.btn_generate,
-            self.out,
-            self.report_html,
-        ])
+        self.main_ui = widgets.VBox(
+            [
+                self.btn_generate,
+                self.out,
+                self.report_html,
+            ]
+        )
 
     def _on_generate_report(self, _=None) -> None:
         with self.out:
             clear_output()
             try:
                 from .stats import bootstrap_ea, shapiro_residuals, generate_report
-                import pandas as pd
 
                 experiments = [
                     rec.df
                     for rec in self.sintering_records
-                    if {"Time_s", "Temperature_C", "DensidadePct"}.issubset(rec.df.columns)
+                    if {"Time_s", "Temperature_C", "DensidadePct"}.issubset(
+                        rec.df.columns
+                    )
                 ]
                 if not experiments:
                     raise ValueError(

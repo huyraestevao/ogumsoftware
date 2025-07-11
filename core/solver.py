@@ -1,3 +1,5 @@
+"""Numerical solvers for data processing routines."""
+
 import numpy as np
 from scipy import stats
 from scipy.signal import savgol_filter
@@ -50,7 +52,7 @@ def calculate_activation_energy(
     ln_rate = np.log(rates.astype(float))
 
     regression = stats.linregress(inv_T, ln_rate)
-    r_squared = regression.rvalue ** 2
+    r_squared = regression.rvalue**2
     Q = -regression.slope * 8.314 / 1000.0
 
     return {
