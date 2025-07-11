@@ -3,6 +3,7 @@ numpy
 scipy
 pandas
 openpyxl
+scikit-learn
 
 # FEM and Visualization
 fenics-dolfinx
