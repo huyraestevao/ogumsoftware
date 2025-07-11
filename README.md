@@ -18,6 +18,13 @@ Alguns testes de FEM e da API exigem dependências extras:
 pip install fenicsx-dolfinx fastapi httpx
 ```
 
+## 🚢 Deploy com Docker & Voila
+
+```bash
+docker-compose up --build
+```
+Acesse http://localhost:8866 para ver o notebook FEM_example.ipynb rodando via Voila.
+
 ## Estrutura do código
 O diretório `ogum/` reúne os módulos Python gerados a partir dos notebooks em
 `notebooks/`. Esses notebooks são exportados para arquivos `.py` que dependem
