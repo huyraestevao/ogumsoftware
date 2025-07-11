@@ -13,6 +13,7 @@ pyvista
 # Web API
 fastapi
 uvicorn[standard]
+pydantic
 httpx
 
 # Web UI
