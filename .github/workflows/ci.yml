@@ -1,11 +1,9 @@
 name: CI
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -14,39 +12,41 @@ jobs:
         python-version: ['3.11']
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
 
-      # ---------- Dependências ----------
-      - name: Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
+          # Instala as dependências de produção e desenvolvimento
           pip install -r requirements.txt
-          pip install pytest-cov ruff scipy scikit-learn
+          # É uma boa prática ter um requirements-dev.txt, mas por agora instalamos manualmente
+          pip install pytest pytest-cov ruff matplotlib scipy
+
+      - name: Install local package 'ogum'
+        run: pip install -e .
 
       - name: Install optional FEM dependencies
         run: |
-          pip install fenicsx-dolfinx mpi4py || echo "FEM deps not available, skipping"
+          pip install fenicsx-dolfinx mpi4py || echo "FEM optional dependencies not available, skipping."
 
-      # ---------- Lint ----------
-      - name: Ruff lint & format check
+      - name: Lint and Format Check
         run: |
           ruff check .
           ruff format --check .
 
-      # ---------- Testes com Coverage ----------
-      - name: Run pytest with coverage
+      - name: Run tests with coverage
         run: |
-          pytest --maxfail=1 --disable-warnings --cov=ogum --cov-report=xml
+          pytest --cov=ogum --cov-report=xml
 
-      # ---------- Upload to Codecov ----------
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
-          files: coverage.xml
+          files: ./coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
