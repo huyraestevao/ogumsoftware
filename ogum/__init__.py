@@ -13,7 +13,8 @@ from .core import (
     generalized_logistic_stable,
     SOVSSolver,
 )
-from .utils import normalize_columns, orlandini_araujo_filter
+from .utils import normalize_columns, orlandini_araujo_filter, savgol_filter
+from .plotting import plot_sintering_curves
 from .processing import calculate_log_theta
 from .material_calibrator import MaterialCalibrator
 
@@ -31,6 +32,8 @@ __all__ = [
     "SOVSSolver",
     "normalize_columns",
     "orlandini_araujo_filter",
+    "savgol_filter",
     "calculate_log_theta",
     "MaterialCalibrator",
+    "plot_sintering_curves",
 ]

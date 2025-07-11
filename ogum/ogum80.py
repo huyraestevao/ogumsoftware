@@ -37,7 +37,7 @@ from IPython.display import display, HTML
 from ogum.utils import orlandini_araujo_filter
 
 # Funções do SciPy
-from scipy.signal import savgol_filter
+from ogum.utils import savgol_filter
 from scipy.interpolate import interp1d
 from scipy.optimize import curve_fit, minimize_scalar
 from scipy.stats import linregress
@@ -424,7 +424,7 @@ import numpy as np
 import ipywidgets as widgets
 from IPython.display import display, clear_output, HTML
 import matplotlib.pyplot as plt
-from scipy.signal import savgol_filter
+from ogum.utils import savgol_filter
 from scipy.interpolate import interp1d, PchipInterpolator, Akima1DInterpolator
 
 
@@ -600,8 +600,7 @@ class Modulo3Recorte:
                     w = min(11, (len(dfi) // 2) * 2 + 1)  # Janela adaptativa e ímpar
                     if w < 5:
                         raise ValueError("Pontos insuficientes para Savitzky-Golay.")
-                    df_filtered[dens_col] = savgol_filter(df_filtered[dens_col], w, 2)
-                    df_filtered[temp_col] = savgol_filter(df_filtered[temp_col], w, 2)  # Suaviza temp também
+                    df_filtered = savgol_filter(df_filtered, window=w, polyorder=2)
                     exibir_mensagem(f"Filtro Savitzky-Golay aplicado (janela={w}).")
 
                 elif method in ("linear", "cubic", "pchip", "akima"):
@@ -2686,7 +2685,7 @@ import ipywidgets as widgets
 from IPython.display import display, clear_output
 import numpy as np
 import pandas as pd
-from scipy.signal import savgol_filter
+from ogum.utils import savgol_filter
 from scipy.interpolate import interp1d
 
 # Importações de utilidades
