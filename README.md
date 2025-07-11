@@ -21,6 +21,9 @@ Alguns testes de FEM e da API exigem dependências extras:
 pip install fenicsx-dolfinx fastapi httpx
 ```
 
+## 🚀 Acesso Online
+Acesse a versão hospedada do Ogum Software no Cloud Run [aqui](URL_DO_SEU_CLOUD_RUN).
+
 ## 🚢 Deploy com Docker & Voila
 
 ```bash
