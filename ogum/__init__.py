@@ -18,6 +18,7 @@ from .plotting import plot_sintering_curves
 from .processing import calculate_log_theta
 from .material_calibrator import MaterialCalibrator
 from .stats import bootstrap_ea, shapiro_residuals, generate_report
+from .final_report import FinalReportModule
 
 __all__ = [
     "R",
@@ -40,4 +41,5 @@ __all__ = [
     "bootstrap_ea",
     "shapiro_residuals",
     "generate_report",
+    "FinalReportModule",
 ]
