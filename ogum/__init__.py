@@ -14,6 +14,7 @@ from .core import (
     SOVSSolver,
 )
 from .utils import normalize_columns, orlandini_araujo_filter
+from .processing import calculate_log_theta
 
 __all__ = [
     "R",
@@ -29,4 +30,5 @@ __all__ = [
     "SOVSSolver",
     "normalize_columns",
     "orlandini_araujo_filter",
+    "calculate_log_theta",
 ]

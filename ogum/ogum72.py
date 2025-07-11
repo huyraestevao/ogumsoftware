@@ -43,6 +43,7 @@ from scipy.stats import linregress
 
 # Usa 'cumulative_trapezoid' para compatibilidade com SciPy >=1.14 e alias como cumtrapz
 from scipy.integrate import cumulative_trapezoid as cumtrapz
+from .processing import calculate_log_theta
 
 import sys
 import ogum.utils as core
@@ -852,43 +853,16 @@ class ModuloLogTheta:
             exibir_mensagem(f"Iniciando cálculo para {len(eas)} energias de ativação...")
 
         for i, df_ensaio in enumerate(self.dfs_ensaios):
-            time_col = next((c for c in df_ensaio.columns if c.startswith("Time_s")), None)
-            temp_col = next((c for c in df_ensaio.columns if c.startswith("Temperature_C")), None)
-            dens_col = next((c for c in df_ensaio.columns if c.startswith("DensidadePct")), None)
-
-            if not (time_col and temp_col and dens_col):
-                with self.out:
-                    exibir_erro(f"Ensaio {i + 1}: Colunas essenciais não encontradas. Pulando.")
-                    continue
-            if df_ensaio[time_col].size < 2:
-                with self.out:
-                    exibir_erro(f"Ensaio {i + 1}: Dados insuficientes para integração. Pulando.")
-                    continue
-
-            T_k = df_ensaio[temp_col].values + 273.15
-
             for Ea_kj in eas:
                 try:
-                    Ea_j = Ea_kj * 1000.0
-                    theta_inst = (1.0 / T_k) * np.exp(-Ea_j / (R * T_k))
-                    integrated = cumtrapz(theta_inst, df_ensaio[time_col].values, initial=0)
-
-                    with np.errstate(divide="ignore", invalid="ignore"):
-                        log_integrated = np.log10(integrated)
-                    log_integrated[~np.isfinite(log_integrated)] = np.nan
-
-                    df_record = pd.DataFrame(
-                        {
-                            "logtheta": log_integrated,
-                            "valor": df_ensaio[dens_col].values,
-                            "tempo_s": df_ensaio[time_col].values,
-                        }
-                    )
+                    df_record = calculate_log_theta(df_ensaio, Ea_kj)
                     record = SinteringDataRecord(i, Ea_kj, "densidade_original", df_record)
                     self.sintering_records.append(record)
                 except Exception as e:
                     with self.out:
-                        exibir_erro(f"Ensaio {i + 1}: Falha ao calcular para Ea={Ea_kj:.2f}. Erro: {e}")
+                        exibir_erro(
+                            f"Ensaio {i + 1}: Falha ao calcular para Ea={Ea_kj:.2f}. Erro: {e}"
+                        )
 
         # Habilita os botões após o cálculo
         self.btn_plot_curves.disabled = not self.sintering_records
