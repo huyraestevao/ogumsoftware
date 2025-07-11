@@ -37,7 +37,9 @@ jobs:
           ruff format --check .
 
       - name: Run tests with coverage
-        run: pytest --cov=ogum --cov-report=xml
+        run: |
+          pytest --cov=ogum --cov-report=xml
+          pytest tests/test_api.py --maxfail=1 --disable-warnings
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

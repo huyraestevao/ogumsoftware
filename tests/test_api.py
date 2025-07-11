@@ -1,67 +1,42 @@
-from fastapi.testclient import TestClient
-import numpy as np
-import json
-from pathlib import Path
+import pytest
+from httpx import AsyncClient
 
-from api.main import app
-
-client = TestClient(app)
+from ogum.api import app
 
 
-def test_filter_endpoint_success():
+@pytest.mark.asyncio
+async def test_health_endpoint():
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        resp = await client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok"}
+
+
+@pytest.mark.asyncio
+async def test_calc_master_endpoint():
     payload = {
-        "data_points": [1.0, 2.0, 3.0, 4.0, 5.0],
-        "window_length": 3,
-        "polyorder": 1,
+        "time_s": [0, 1, 2],
+        "temperature_c": [100.0, 110.0, 120.0],
+        "density_pct": [10.0, 20.0, 30.0],
+        "energia_ativacao_kj": 50.0,
     }
-    response = client.post("/processing/filter", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["original_data"] == payload["data_points"]
-    assert isinstance(data["filtered_data"], list)
-    assert len(data["filtered_data"]) == len(payload["data_points"])
-
-
-def test_filter_endpoint_invalid_window():
-    payload = {"data_points": [1, 2, 3, 4], "window_length": 4, "polyorder": 1}
-    response = client.post("/processing/filter", json=payload)
-    assert response.status_code == 400
-
-
-def test_activation_energy_endpoint_success():
-    temperatures = [300.0, 400.0, 500.0, 600.0]
-    Q_true = 50_000.0
-    rates = np.exp(-Q_true / (8.314 * np.array(temperatures)))
-    payload = {"temperatures": temperatures, "rates": rates.tolist()}
-
-    response = client.post("/processing/activation-energy", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert abs(data["Q"] - 50.0) < 0.5
-    assert data["r_squared"] > 0.99
-
-
-def test_activation_energy_endpoint_mismatch():
-    payload = {"temperatures": [300.0, 400.0], "rates": [1.0]}
-    response = client.post("/processing/activation-energy", json=payload)
-    assert response.status_code == 400
-
-
-def test_fem_status_pending(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    job_id = "missing"
-    resp = client.get(f"/fem/simulation/status/{job_id}")
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        resp = await client.post("/calc-master", json=payload)
     assert resp.status_code == 200
-    assert resp.json() == {"status": "pending"}
+    data = resp.json()
+    assert {"logtheta", "valor", "tempo_s"} <= data.keys()
+    assert len(data["logtheta"]) == len(payload["time_s"])
 
 
-def test_fem_status_existing(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
-    job_id = "abc"
-    out_dir = Path("fem_output")
-    out_dir.mkdir()
-    data = {"status": "completed", "image_path": "img.png", "data_path": "file.xdmf"}
-    (out_dir / f"{job_id}.json").write_text(json.dumps(data))
-    resp = client.get(f"/fem/simulation/status/{job_id}")
+@pytest.mark.asyncio
+async def test_fem_sim_endpoint():
+    payload = {
+        "mesh_size": 0.5,
+        "history": [(0.0, 1000.0), (1.0, 1000.0)],
+    }
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        resp = await client.post("/fem-sim", json=payload)
     assert resp.status_code == 200
-    assert resp.json() == data
+    data = resp.json()
+    assert "densities" in data
+    assert isinstance(data["densities"], list)
