@@ -4,6 +4,7 @@ scipy
 pandas
 openpyxl
 scikit-learn
+matplotlib
 
 # FEM and Visualization
 fenics-dolfinx
