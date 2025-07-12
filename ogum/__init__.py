@@ -19,6 +19,8 @@ from .processing import calculate_log_theta
 from .material_calibrator import MaterialCalibrator
 from .stats import bootstrap_ea, shapiro_residuals, generate_report
 from .final_report import FinalReportModule
+from .mesh_generator import generate_mesh
+from .mesh_generator_ui import MeshGeneratorUI
 
 __all__ = [
     "R",
@@ -42,4 +44,6 @@ __all__ = [
     "shapiro_residuals",
     "generate_report",
     "FinalReportModule",
+    "generate_mesh",
+    "MeshGeneratorUI",
 ]
