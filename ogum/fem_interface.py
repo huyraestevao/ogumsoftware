@@ -87,13 +87,12 @@ def densify_mesh_async(
         Function called when the computation finishes. It receives the result
         dictionary as a single argument.
 
-    Returns
+    Returns:
     -------
     (Thread, dict)
         The started thread and a dictionary containing ``densities`` or
         ``error`` keys.
     """
-
     result: dict = {"densities": None, "error": None}
 
     def _target() -> None:
