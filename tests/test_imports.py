@@ -8,6 +8,8 @@ MODULES = [
     "ogum.sovs",
     "ogum.fem_interface",
     "ogum.processing",
+    "ogum.mesh_generator",
+    "ogum.mesh_generator_ui",
 ]
 
 
