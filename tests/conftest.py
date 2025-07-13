@@ -4,10 +4,13 @@ import sys
 from pathlib import Path
 import types
 
-# Ensure project root is on sys.path so test modules can import ``ogum``.
+# Ensure project root and ``src`` directory are on ``sys.path`` so test modules
+# can import ``ogum`` both locally and when installed.
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+SRC = ROOT / "src"
+for path in [ROOT, SRC]:
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
 
 # Provide minimal stubs for optional GUI dependencies so that modules importing
 # them do not fail during tests.
