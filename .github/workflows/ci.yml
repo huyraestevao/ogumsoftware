@@ -16,7 +16,7 @@ jobs:
         with:
           auto-update-conda: true
           environment-file: environment.yml
-          activate-environment: fenics-env
+          activate-environment: ogum
 
       - name: Install system packages
         run: sudo apt-get update && sudo apt-get install -y libglu1-mesa
