@@ -18,11 +18,11 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
       - name: Configure Docker to use gcloud
         run: |
-          gcloud auth configure-docker us-central1-docker.pkg.dev
+          gcloud auth configure-docker southamerica-east1-docker.pkg.dev
       - name: Build and push Docker image
         run: |
-          docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
-          docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
+          docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
+          docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
   deploy-to-cloud-run:
     needs: build-and-push-docker
     runs-on: ubuntu-latest
@@ -39,7 +39,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v1
         with:
           service: ogumsoftware
-          image: us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
-          region: us-central1
+          image: southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
+          region: southamerica-east1
           allow-unauthenticated: true
           port: "8866"
