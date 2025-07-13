@@ -1,6 +1,6 @@
 """Interface utilities for running finite element simulations."""
 
-from typing import Any, List, Tuple
+from typing import Any, Callable, List, Tuple
 from threading import Thread
 
 import numpy as np
@@ -71,7 +71,7 @@ def densify_mesh_async(
     mesh: Any,
     temperature_history: List[Tuple[float, float]],
     solver_options: dict | None = None,
-    callback: callable | None = None,
+    callback: Callable | None = None,
 ) -> tuple[Thread, dict]:
     """Execute :func:`densify_mesh` in a separate thread.
 

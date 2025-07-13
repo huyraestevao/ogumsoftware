@@ -18,7 +18,7 @@ classifiers = [
 ]
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["ogum*"]
 
 [tool.ruff]

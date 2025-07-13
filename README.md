@@ -4,7 +4,7 @@
 
 
 Este repositório contém quatro experimentos (64, 72, 80 e FZEA) em formato
-Jupyter (`notebooks/`) e seus correspondentes módulos Python (`ogum/`).
+Jupyter (`notebooks/`) e seus correspondentes módulos Python (`src/ogum/`).
 
 ## 🚀 Acesso Online
 Após cada `push` para o branch `main`, a aplicação é automaticamente publicada no Google Cloud Run. Para aceder:
@@ -18,6 +18,7 @@ Pode também gerir os seus serviços diretamente no [Google Cloud Run Console](h
 ## Instalação rápida
 ```bash
 pip install -r requirements.txt
+pip install -e .
 pytest -q
 ```
 
@@ -38,14 +39,14 @@ e a API em [http://localhost:8000](http://localhost:8000) com docs em
 [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Estrutura do código
-O diretório `ogum/` reúne os módulos Python gerados a partir dos notebooks em
+O diretório `src/ogum/` reúne os módulos Python gerados a partir dos notebooks em
 `notebooks/`. Esses notebooks são exportados para arquivos `.py` que dependem
-de utilidades comuns localizadas em `ogum/utils.py`. Esse módulo concentra
+de utilidades comuns localizadas em `src/ogum/utils.py`. Esse módulo concentra
 funções auxiliares simples, como `normalize_columns`, utilizadas por diferentes
 experimentos. Manter esse arquivo presente permite que os scripts exportados
 funcionem sem ajustes adicionais e compartilhem a mesma base de utilidades.
 
-O módulo `ogum/sovs.py` fornece `SOVSSolver`, um integrador baseado no modelo
+O módulo `src/ogum/sovs.py` fornece `SOVSSolver`, um integrador baseado no modelo
 de Skorohod-Olevsky. Instancie-o com os parâmetros do material e utilize
 ``solve(t, T)`` para obter a evolução da densidade relativa ao longo do tempo.
 
@@ -89,4 +90,4 @@ ruff format .
 ```
 
 ## Stub FEM
-O arquivo `ogum/fem_interface.py` define a função `create_unit_mesh`, que apenas importa o construtor de malha do FEniCSx. Essa implementação é provisória e servirá de base para integrações futuras com um solver de Elementos Finitos.
+O arquivo `src/ogum/fem_interface.py` define a função `create_unit_mesh`, que apenas importa o construtor de malha do FEniCSx. Essa implementação é provisória e servirá de base para integrações futuras com um solver de Elementos Finitos.
