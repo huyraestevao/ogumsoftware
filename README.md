@@ -7,7 +7,13 @@ Este repositório contém quatro experimentos (64, 72, 80 e FZEA) em formato
 Jupyter (`notebooks/`) e seus correspondentes módulos Python (`ogum/`).
 
 ## 🚀 Acesso Online
-Acesse a versão online do Ogum Software [aqui](URL_DO_SEU_CLOUD_RUN).
+Após cada `push` para o branch `main`, a aplicação é automaticamente publicada no Google Cloud Run. Para aceder:
+
+1.  Vá para a secção **"Actions"** do repositório no GitHub.
+2.  Encontre o último workflow de **"Deploy"** que foi executado com sucesso.
+3.  Dentro dos logs do job `deploy-to-cloud-run`, irá encontrar a URL do serviço, que se parecerá com: `https://ogumsoftware-xxxxxxxx-uc.a.run.app`.
+
+Pode também gerir os seus serviços diretamente no [Google Cloud Run Console](https://console.cloud.google.com/run).
 
 ## Instalação rápida
 ```bash
@@ -18,11 +24,8 @@ pytest -q
 Alguns testes de FEM e da API exigem dependências extras:
 
 ```bash
-pip install fenicsx-dolfinx fastapi httpx
+pip install fenics-dolfinx fastapi httpx
 ```
-
-## 🚀 Acesso Online
-Acesse a versão hospedada do Ogum Software no Cloud Run [aqui](URL_DO_SEU_CLOUD_RUN).
 
 ## 🚢 Deploy com Docker & Voila
 
