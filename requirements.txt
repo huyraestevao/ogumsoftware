@@ -7,7 +7,7 @@ scikit-learn
 matplotlib
 
 # FEM and Visualization
-fenics-dolfinx
+dolfinx
 pyvista
 
 # Mesh generation
