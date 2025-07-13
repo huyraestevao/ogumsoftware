@@ -37,30 +37,32 @@ def generate_mesh(
     except (ImportError, OSError) as exc:  # pragma: no cover - optional dep
         raise ModuleNotFoundError("gmsh não instalado ou libGLU ausente") from exc
 
-    gmsh.model.add("pack")
-    gmsh.option.setNumber("Mesh.CharacteristicLengthMin", element_size)
-    gmsh.option.setNumber("Mesh.CharacteristicLengthMax", element_size)
-    gmsh.model.occ.addBox(0, 0, 0, box_size, box_size, box_size, 1)
-    sphere_tags: list[int] = []
-    for _ in range(n_spheres):
-        x = random.uniform(radius, box_size - radius)
-        y = random.uniform(radius, box_size - radius)
-        z = random.uniform(radius, box_size - radius)
-        tag = gmsh.model.occ.addSphere(x, y, z, radius)
-        sphere_tags.append(tag)
+    try:
+        gmsh.model.add("pack")
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMin", element_size)
+        gmsh.option.setNumber("Mesh.CharacteristicLengthMax", element_size)
+        gmsh.model.occ.addBox(0, 0, 0, box_size, box_size, box_size, 1)
+        sphere_tags: list[int] = []
+        for _ in range(n_spheres):
+            x = random.uniform(radius, box_size - radius)
+            y = random.uniform(radius, box_size - radius)
+            z = random.uniform(radius, box_size - radius)
+            tag = gmsh.model.occ.addSphere(x, y, z, radius)
+            sphere_tags.append(tag)
 
-    gmsh.model.occ.cut(
-        [(3, 1)],
-        [(3, t) for t in sphere_tags],
-        removeObject=False,
-        removeTool=True,
-    )
-    gmsh.model.occ.synchronize()
-    gmsh.model.mesh.generate(3)
-    msh_file = tempfile.mktemp(suffix=".msh")
-    gmsh.write(msh_file)
-    gmsh.finalize()
-    return msh_file
+        gmsh.model.occ.cut(
+            [(3, 1)],
+            [(3, t) for t in sphere_tags],
+            removeObject=False,
+            removeTool=True,
+        )
+        gmsh.model.occ.synchronize()
+        gmsh.model.mesh.generate(3)
+        msh_file = tempfile.mktemp(suffix=".msh")
+        gmsh.write(msh_file)
+        return msh_file
+    finally:
+        gmsh.finalize()
 
 
 __all__ = ["generate_mesh"]
