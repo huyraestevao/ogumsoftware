@@ -60,7 +60,6 @@ def savgol_filter(
     The window size is chosen adaptively when ``window`` is ``None`` using
     ``min(11, (len(df) // 2) * 2 + 1)``. Non-numeric columns are preserved.
     """
-
     if df.empty:
         return df.copy()
 

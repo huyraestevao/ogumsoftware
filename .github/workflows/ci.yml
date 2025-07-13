@@ -23,10 +23,8 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          # Instala dependências de produção e desenvolvimento
-          # É uma boa prática ter um requirements-dev.txt, mas por agora instalamos tudo
           pip install -r requirements.txt
-          pip install pytest pytest-cov ruff matplotlib scipy httpx
+          pip install -r requirements-dev.txt
 
       - name: Install local package 'ogum'
         run: pip install -e .

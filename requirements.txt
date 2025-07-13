@@ -10,6 +10,9 @@ matplotlib
 fenics-dolfinx
 pyvista
 
+# Mesh generation
+gmsh
+
 # Web API
 fastapi
 uvicorn[standard]
