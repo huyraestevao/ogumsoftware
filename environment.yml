@@ -1,0 +1,20 @@
+name: ci
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - dolfinx        # FEniCSx
+  - mpi4py
+  - gmsh
+  - pytest
+  - pytest-asyncio
+  - numpy
+  - scipy
+  - pandas
+  - pytest-cov
+  - anyio
+  - uvicorn
+  - fastapi
+  - streamlit
+  - codecov
+  - ruff
