@@ -32,10 +32,11 @@ def generate_mesh(
     """
     try:
         import gmsh
-    except ImportError as exc:  # pragma: no cover - optional dependency
-        raise ModuleNotFoundError("gmsh not installed") from exc
 
-    gmsh.initialize()
+        gmsh.initialize()
+    except (ImportError, OSError) as exc:  # pragma: no cover - optional dep
+        raise ModuleNotFoundError("gmsh não instalado ou libGLU ausente") from exc
+
     gmsh.model.add("pack")
     gmsh.option.setNumber("Mesh.CharacteristicLengthMin", element_size)
     gmsh.option.setNumber("Mesh.CharacteristicLengthMax", element_size)

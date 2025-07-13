@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from scipy.optimize import curve_fit
 
 from .core import R
 from .processing import calculate_log_theta
@@ -61,7 +62,7 @@ class MaterialCalibrator:
             if isinstance(experiments, pd.DataFrame)
             else list(experiments)
         )
-        xs: List[np.ndarray] = []
+        temps: List[np.ndarray] = []
         ys: List[np.ndarray] = []
 
         for df in exps:
@@ -74,19 +75,26 @@ class MaterialCalibrator:
             mask = (dxdt > 0) & (x > 0) & (x < 1)
             if not np.any(mask):
                 continue
-            xs.append(1.0 / T[mask])
+            temps.append(T[mask])
             ys.append(np.log(dxdt[mask] / (1 - x[mask])))
 
-        if not xs:
+        if not temps:
             raise ValueError("No valid data for fitting")
 
-        X = np.concatenate(xs)
+        T_all = np.concatenate(temps)
         Y = np.concatenate(ys)
-        coeffs = np.polyfit(X, Y, deg=1)
+
+        def model(T, Ea, A):
+            return np.log(A) - Ea * 1000.0 / (R * T)
+
+        # linear regression as initial guess
+        coeffs = np.polyfit(1.0 / T_all, Y, deg=1)
         slope, intercept = coeffs
-        Ea = -slope * R / 1000.0
-        A = float(np.exp(intercept))
-        return Ea, A
+        p0 = (-slope * R / 1000.0, float(np.exp(intercept)))
+
+        params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000)
+        Ea, A = params
+        return float(Ea), float(A)
 
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
