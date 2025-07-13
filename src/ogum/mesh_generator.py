@@ -50,19 +50,7 @@ def generate_mesh(
             tag = gmsh.model.occ.addSphere(x, y, z, radius)
             sphere_tags.append(tag)
 
-        gmsh.model.occ.cut(
-            [(3, 1)],
-            [(3, t) for t in sphere_tags],
-            removeObject=False,
-            removeTool=True,
-        )
-        gmsh.model.occ.synchronize()
-        gmsh.model.mesh.generate(3)
-        msh_file = tempfile.mktemp(suffix=".msh")
-        gmsh.write(msh_file)
-        return msh_file
-    finally:
-        gmsh.finalize()
+
 
 
 __all__ = ["generate_mesh"]
