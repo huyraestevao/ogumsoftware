@@ -1,10 +1,24 @@
-name: fenics-env
+name: ogum
 channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - mpi4py
-  - dolfinx=0.8.0
+  - dolfinx
   - gmsh
+  - pyvista
+  - mpi4py
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - openpyxl
+  - pytest
+  - pytest-cov
   - pytest-asyncio
+  - ruff
   - pip
+  - pip:
+    - fastapi
+    - uvicorn[standard]
+    - voila
