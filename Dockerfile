@@ -22,3 +22,5 @@ RUN python3 -m pip install --no-cache-dir -e .
 # 7. Expor as portas para a aplicacao Voila e para a API.
 EXPOSE 8866
 EXPOSE 8000
+
+CMD ["bash", "-lc", "uvicorn ogum.api:app --host 0.0.0.0 --port ${PORT:-8080}"]
