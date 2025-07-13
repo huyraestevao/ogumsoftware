@@ -18,7 +18,7 @@ def create_unit_mesh(mesh_size: float) -> Any:
     try:
         from mpi4py import MPI
         from dolfinx.mesh import create_rectangle, CellType
-    except ImportError as exc:
+    except (ImportError, OSError) as exc:  # pragma: no cover - optional deps
         raise ModuleNotFoundError("FEniCSx ou mpi4py não instalado") from exc
 
     domain = [[0.0, 0.0], [1.0, 1.0]]

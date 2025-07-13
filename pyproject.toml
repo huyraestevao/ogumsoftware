@@ -21,6 +21,15 @@ classifiers = [
 where = ["src"]
 include = ["ogum*"]
 
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "ruff",
+    "httpx",
+    "pytest-asyncio",
+]
+
 [tool.ruff]
 line-length = 88
 exclude = [
@@ -39,4 +48,9 @@ pydocstyle.convention = "google"
 "tests/*" = ["D100", "D101", "D103", "D105"]
 
 [tool.ruff.format]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+pythonpath = "src"
+testpaths = "tests"
 
