@@ -1,20 +1,10 @@
-name: ci
+name: fenics-env
 channels:
   - conda-forge
 dependencies:
   - python=3.11
-  - dolfinx        # FEniCSx
   - mpi4py
+  - dolfinx=0.8.0
   - gmsh
-  - pytest
   - pytest-asyncio
-  - numpy
-  - scipy
-  - pandas
-  - pytest-cov
-  - anyio
-  - uvicorn
-  - fastapi
-  - streamlit
-  - codecov
-  - ruff
+  - pip
