@@ -57,7 +57,8 @@ def generate_mesh(
     )
     gmsh.model.occ.synchronize()
     gmsh.model.mesh.generate(3)
-    msh_file = tempfile.mktemp(suffix=".msh")
+    with tempfile.NamedTemporaryFile(suffix=".msh", delete=False) as tmp:
+        msh_file = tmp.name
     gmsh.write(msh_file)
     gmsh.finalize()
     return msh_file
