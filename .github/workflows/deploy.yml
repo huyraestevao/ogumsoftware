@@ -11,7 +11,7 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -27,10 +27,12 @@ jobs:
     needs: build-and-push-docker
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v1
         with:
-          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -41,5 +43,4 @@ jobs:
           service: ogumsoftware
           image: southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
           region: southamerica-east1
-          allow-unauthenticated: true
-          port: "8866"
+          flags: --allow-unauthenticated
