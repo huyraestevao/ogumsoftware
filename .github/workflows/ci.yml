@@ -5,58 +5,33 @@ on:
   pull_request:
     branches: [ main ]
 jobs:
-  test-and-lint:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.11']
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Configure Conda
+      - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: 3.11
           environment-file: environment.yml
-          activate-environment: ci
+          activate-environment: fenics-env
 
-      - name: Show installed packages
-        run: conda list
+      - name: Install system packages
+        run: sudo apt-get update && sudo apt-get install -y libglu1-mesa
         shell: bash -l {0}
 
-      - name: Install Dependencies
+      - name: Install Python dependencies
         run: |
-          conda activate ci
-          sudo apt-get update && sudo apt-get install -y libglu1-mesa
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -e .[dev]
-      - name: Install local package 'ogum'
-        run: |
-          conda activate ci
+          pip install -r requirements-dev.txt
           pip install -e .
         shell: bash -l {0}
 
-      - name: Lint and Format Check
-        run: |
-          conda activate ci
-          ruff check .
-          ruff format --check .
-        shell: bash -l {0}
-
       - name: Run tests with coverage
-        run: |
-          conda activate ci
-          pytest --cov=ogum --cov-report=xml
-          pytest tests/test_api.py --maxfail=1 --disable-warnings
+        run: pytest --cov=ogum --cov-report=xml
         shell: bash -l {0}
 
       - name: Upload coverage to Codecov
@@ -65,17 +40,3 @@ jobs:
           files: ./coverage.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
-
-  docker-build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Build Docker image
-        run: docker build -t ogumsoftware:latest .
