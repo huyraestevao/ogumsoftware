@@ -16,3 +16,4 @@ def test_generate_mesh_runs_or_errors(tmp_path):
         path = generate_mesh(0.2, 1.0, 0.1, 1)
         assert os.path.isfile(path)
         assert path.endswith(".msh")
+        os.remove(path)
