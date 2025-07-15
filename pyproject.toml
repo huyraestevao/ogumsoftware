@@ -10,7 +10,8 @@ authors = [
 ]
 description = "A suite for analyzing sintering processes."
 readme = "README.md"
-requires-python = ">=3.10"
+# ATUALIZADO para refletir a nova base do projeto.
+requires-python = ">=3.11"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
@@ -21,14 +22,15 @@ classifiers = [
 where = ["src"]
 include = ["ogum*"]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-    "ruff",
-    "httpx",
-    "pytest-asyncio",
-]
+# SEÇÃO REMOVIDA - Veja a explicação abaixo.
+# [project.optional-dependencies]
+# dev = [
+#     "pytest",
+#     "pytest-cov",
+#     "ruff",
+#     "httpx",
+#     "pytest-asyncio",
+# ]
 
 [tool.ruff]
 line-length = 88
@@ -53,4 +55,3 @@ pydocstyle.convention = "google"
 asyncio_mode = "auto"
 pythonpath = "src"
 testpaths = "tests"
-
