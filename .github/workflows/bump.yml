@@ -1,0 +1,13 @@
+name: Bump version
+on:
+  workflow_dispatch:
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Bump patch
+        run: |
+          pip install bump-my-version
+          bump-my-version bump patch
+          git push --follow-tags
