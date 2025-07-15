@@ -2,7 +2,7 @@
 
 import click
 from . import __version__
-from diagnostics import run_diagnostics
+import diagnostics
 
 
 @click.group()
@@ -14,7 +14,7 @@ def cli():
 @cli.command()
 def doctors():
     """Run environment diagnostics."""
-    run_diagnostics()
+    diagnostics.run_diagnostics()
 
 
 if __name__ == "__main__":

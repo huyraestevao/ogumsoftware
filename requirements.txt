@@ -16,6 +16,7 @@ gmsh
 fastapi
 uvicorn[standard]
 pydantic
+pydantic-settings>=2.1
 httpx
 
 # Web UI
