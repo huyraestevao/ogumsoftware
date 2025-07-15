@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # ruff: noqa: D100, E402
 """FastAPI endpoints exposing core Ogum functionality."""
-from typing import List, Optional
+from typing import Optional  # List não é usado
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
@@ -15,17 +15,23 @@ app = FastAPI(title="Ogum Sintering API")
 
 
 class MasterInput(BaseModel):
+    """Payload for `/calc-master` containing master curve data."""
+
     time_s: list[float]
     temperature_c: list[float]
     density_pct: list[float]
     energia_ativacao_kj: float
 
 class MasterOutput(BaseModel):
+    """Response model for `/calc-master`."""
+
     logtheta: list[Optional[float]]
     valor: list[float]
     tempo_s: list[float]
 
 class FEMInput(BaseModel):
+    """Input parameters for the `/fem-sim` endpoint."""
+
     mesh_size: float
     history: list[tuple[float, float]]
     Ea: float
@@ -34,6 +40,7 @@ class FEMInput(BaseModel):
 
 @app.post("/calc-master", response_model=MasterOutput)
 def calc_master(input: MasterInput) -> dict:
+    """Calculate the master curve for a sintering experiment."""
     df = pd.DataFrame({
         "Time_s": input.time_s,
         "Temperature_C": input.temperature_c,
@@ -50,6 +57,7 @@ def calc_master(input: MasterInput) -> dict:
 
 @app.post("/fem-sim")
 def fem_sim(input: FEMInput) -> dict[str, list[float]]:
+    """Run a simple FEM densification simulation."""
     mesh = create_unit_mesh(input.mesh_size)
     densities = densify_mesh(mesh, input.history, Ea=input.Ea, A=input.A)
     return {"densities": densities.tolist()}
@@ -57,4 +65,5 @@ def fem_sim(input: FEMInput) -> dict[str, list[float]]:
 
 @app.get("/health")
 def health() -> dict[str, str]:
+    """Return application status."""
     return {"status": "ok"}
