@@ -30,3 +30,4 @@ codecov
 
 ruff
 
+ipywidgets>=8,<9
