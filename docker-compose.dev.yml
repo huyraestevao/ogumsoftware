@@ -6,6 +6,6 @@ services:
     ports: ["8000:8000"]
   voila:
     build: .
-    command: voila notebooks/app.ipynb --port=8866 --no-browser --Voila.ip --Voila.base_url=/
+    command: voila notebooks/app.ipynb --port=8866 --no-browser --Voila.ip=0.0.0.0
     ports: ["8866:8866"]
     depends_on: [api]
