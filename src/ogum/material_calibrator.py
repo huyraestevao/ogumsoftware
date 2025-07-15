@@ -42,7 +42,7 @@ class MaterialCalibrator:
         experiments: Union[pd.DataFrame, List[pd.DataFrame]],
     ) -> Tuple[float, float]:
         """Return ``(Ea_kj, A)`` fitted from the provided experiments.
-        (Versão final, simples e robusta)
+        (Versão final, usando regressão linear direta para máxima robustez)
         """
         exps = (
             [experiments]
@@ -77,38 +77,21 @@ class MaterialCalibrator:
         T_all = np.concatenate(temps)
         Y = np.concatenate(ys)
 
-        # --- ALTERAÇÃO FINAL: Usar a regressão linear como a solução direta ---
+        # --- CORREÇÃO FINAL: Usar a regressão linear como a solução direta ---
         # O modelo é Y = m*X + c, onde X = 1/T, m = -Ea*1000/R, c = ln(A)
         # O polyfit é a ferramenta perfeita e mais estável para isso.
-        
         try:
-            coeffs = np.polyfit(1.0 / T_all, Y, deg=1)
-            slope, intercept = coeffs
+            # Fit a line (degree 1 polynomial) to the transformed data
+            slope, intercept = np.polyfit(1.0 / T_all, Y, deg=1)
     
-            # Extrai os parâmetros físicos da regressão
-            Ea = -slope * R / 1000.0  # Energia de ativação em kJ/mol
-            A = np.exp(intercept)      # Fator pré-exponencial
+            # Calculate physical parameters from the regression
+            Ea = -slope * R / 1000.0  # Activation energy in kJ/mol
+            A = np.exp(intercept)      # Pre-exponential factor
     
             return float(Ea), float(A)
         except (np.linalg.LinAlgError, ValueError):
-             # Se o polyfit falhar (dados insuficientes/inválidos), retorna NaN
+             # If polyfit fails (e.g., insufficient data), return NaN
             return np.nan, np.nan
-        def model(T, Ea, A):
-            return np.log(A) - Ea * 1000.0 / (R * T)
-
-        # --- CORREÇÃO FINAL: Usar um chute inicial (p0) fixo e robusto ---
-        # Em vez de um polyfit instável, damos valores razoáveis para o otimizador.
-        p0 = (100.0, 1.0)  # (Ea, A)
-
-        bounds = ([-np.inf, 0], [np.inf, np.inf])
-
-        try:
-            params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds, method='trf')
-        except (RuntimeError, ValueError):
-            return np.nan, np.nan
-        
-        Ea, A = params
-        return float(Ea), float(A)
 
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
