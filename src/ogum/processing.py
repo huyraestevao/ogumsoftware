@@ -8,31 +8,52 @@ import pandas as pd
 from .core import R, cumtrapz
 
 
+# -----------------------------------------------------------------------------#
+# Função pública
+# -----------------------------------------------------------------------------#
 def calculate_log_theta(
-    df_ensaio: pd.DataFrame, energia_ativacao_kj: float
+    df_ensaio: pd.DataFrame,
+    energia_ativacao_kj: float | None = None,
+    **kwargs,
 ) -> pd.DataFrame:
-    """Calculate log(theta) for a single test and activation energy.
+    """Calcula log‑theta para um ensaio e uma *Ea* dada.
+
+    Aceita tanto o nome **``energia_ativacao_kj``** (padrão interno) quanto
+    os aliases usados nos testes/legacy – ``Ea_kJ`` ou ``Ea_kj`` – para fins
+    de compatibilidade.
 
     Parameters
     ----------
     df_ensaio : pd.DataFrame
-        Data for one experiment containing ``Time_s*``, ``Temperature_C*`` and
-        ``DensidadePct*`` columns.
-    energia_ativacao_kj : float
-        Activation energy in kJ/mol.
+        Colunas obrigatórias: ``Time_s*``, ``Temperature_C*`` e
+        ``DensidadePct*`` (podem possuir sufixos).
+    energia_ativacao_kj : float, optional
+        Energia de ativação em kJ/mol.
+    **kwargs :
+        Permite receber ``Ea_kJ=`` ou ``Ea_kj=`` sem quebrar código existente.
 
-    Returns:
+    Returns
     -------
     pd.DataFrame
-        DataFrame with columns ``logtheta``, ``valor`` and ``tempo_s``.
+        Colunas ``logtheta``, ``valor`` e ``tempo_s``.
     """
+    # ------------------------------------------------------------------#
+    # Compatibilidade de nomes de argumento
+    # ------------------------------------------------------------------#
+    if energia_ativacao_kj is None:
+        energia_ativacao_kj = kwargs.get("Ea_kJ") or kwargs.get("Ea_kj")
+        if energia_ativacao_kj is None:
+            raise TypeError(
+                "missing required argument 'energia_ativacao_kj' "
+                "(também aceito Ea_kJ= ou Ea_kj=)"
+            )
+
+    # ------------------------------------------------------------------#
+    # Localiza colunas com possíveis sufixos
+    # ------------------------------------------------------------------#
     time_col = next((c for c in df_ensaio.columns if c.startswith("Time_s")), None)
-    temp_col = next(
-        (c for c in df_ensaio.columns if c.startswith("Temperature_C")), None
-    )
-    dens_col = next(
-        (c for c in df_ensaio.columns if c.startswith("DensidadePct")), None
-    )
+    temp_col = next((c for c in df_ensaio.columns if c.startswith("Temperature_C")), None)
+    dens_col = next((c for c in df_ensaio.columns if c.startswith("DensidadePct")), None)
 
     if not (time_col and temp_col and dens_col):
         raise ValueError("Required columns missing")
@@ -40,6 +61,9 @@ def calculate_log_theta(
     if df_ensaio[time_col].size < 2:
         raise ValueError("Insufficient data for integration")
 
+    # ------------------------------------------------------------------#
+    # Cálculo do log‑theta
+    # ------------------------------------------------------------------#
     T_k = df_ensaio[temp_col].to_numpy(dtype=float) + 273.15
     Ea_j = energia_ativacao_kj * 1000.0
 
