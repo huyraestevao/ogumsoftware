@@ -55,3 +55,6 @@ pydocstyle.convention = "google"
 asyncio_mode = "auto"
 pythonpath = "src"
 testpaths = "tests"
+
+[project.scripts]
+ogum = "ogum.cli:cli"
