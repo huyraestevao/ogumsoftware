@@ -7,7 +7,7 @@ channels:
 
 dependencies:
   # 1. Base do Ambiente
-  - python=3.11
+  - python=3.11          # versão única
   - mamba
   - pip
 
@@ -32,7 +32,7 @@ dependencies:
   - ruff
 
   # 5. Dependências de Interface / Jupyter
-  - ipywidgets               # ← novo: requerido por ogum.core
+  - ipywidgets           # requerido por ogum.core
 
   # 6. Pacotes via Pip
   - pip:
