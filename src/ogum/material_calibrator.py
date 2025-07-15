@@ -69,9 +69,9 @@ class MaterialCalibrator:
 
         which satisfies the governing equation exactly for an isothermal
         constant‑*k* run and remains accurate for the slowly varying
-        temperature ramps typical of flash‑sintering tests.  This choice
-        avoids the systematic over‑estimation that arises when taking
-derivatives of noisy data.
+        temperature ramps typical of flash‑sintering tests.  
+        This choice evita a super‑estimação sistemática causada 
+        pelas derivadas de dados ruidosos.
         """
         exps = [experiments] if isinstance(experiments, pd.DataFrame) else list(experiments)
 
