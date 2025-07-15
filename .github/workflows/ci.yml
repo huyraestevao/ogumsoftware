@@ -13,6 +13,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache conda packages
+        uses: actions/cache@v3
+        with:
+          path: ~/conda_pkgs_dir
+          key: conda-${{ hashFiles('environment.yml') }}
+          restore-keys: conda-
+
+
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -22,6 +30,7 @@ jobs:
           auto-update-conda: true
           channels: conda-forge
           use-mamba: true
+          conda-remove-defaults: true
 
       - name: Install package
         shell: bash -l {0}
