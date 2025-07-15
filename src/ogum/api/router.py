@@ -2,8 +2,10 @@ from __future__ import annotations
 
 # ruff: noqa: D100, E402
 """FastAPI endpoints exposing core Ogum functionality."""
-from typing import Optional  # List não é usado
-from fastapi import FastAPI
+
+from typing import Optional
+
+from fastapi import APIRouter
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
@@ -11,7 +13,7 @@ import numpy as np
 from ogum.processing import calculate_log_theta
 from ogum.fem_interface import create_unit_mesh, densify_mesh
 
-app = FastAPI(title="Ogum Sintering API")
+router = APIRouter()
 
 
 class MasterInput(BaseModel):
@@ -22,12 +24,14 @@ class MasterInput(BaseModel):
     density_pct: list[float]
     energia_ativacao_kj: float
 
+
 class MasterOutput(BaseModel):
     """Response model for `/calc-master`."""
 
     logtheta: list[Optional[float]]
     valor: list[float]
     tempo_s: list[float]
+
 
 class FEMInput(BaseModel):
     """Input parameters for the `/fem-sim` endpoint."""
@@ -38,14 +42,16 @@ class FEMInput(BaseModel):
     A: float
 
 
-@app.post("/calc-master", response_model=MasterOutput)
+@router.post("/calc-master", response_model=MasterOutput)
 def calc_master(input: MasterInput) -> dict:
     """Calculate the master curve for a sintering experiment."""
-    df = pd.DataFrame({
-        "Time_s": input.time_s,
-        "Temperature_C": input.temperature_c,
-        "DensidadePct": input.density_pct,
-    })
+    df = pd.DataFrame(
+        {
+            "Time_s": input.time_s,
+            "Temperature_C": input.temperature_c,
+            "DensidadePct": input.density_pct,
+        }
+    )
     df_out = calculate_log_theta(df, energia_ativacao_kj=input.energia_ativacao_kj)
     logtheta_list = [None if np.isnan(v) else v for v in df_out["logtheta"]]
     return {
@@ -55,7 +61,7 @@ def calc_master(input: MasterInput) -> dict:
     }
 
 
-@app.post("/fem-sim")
+@router.post("/fem-sim")
 def fem_sim(input: FEMInput) -> dict[str, list[float]]:
     """Run a simple FEM densification simulation."""
     mesh = create_unit_mesh(input.mesh_size)
@@ -63,7 +69,7 @@ def fem_sim(input: FEMInput) -> dict[str, list[float]]:
     return {"densities": densities.tolist()}
 
 
-@app.get("/health")
+@router.get("/health")
 def health() -> dict[str, str]:
     """Return application status."""
     return {"status": "ok"}
