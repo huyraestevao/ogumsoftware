@@ -27,6 +27,7 @@ class FinalReportModule:
         self._build_ui()
 
     def _build_ui(self) -> None:
+        """Create the widget layout used by the report module."""
         self.btn_generate = widgets.Button(
             description="Gerar Relatório Estatístico", button_style="info"
         )
@@ -42,6 +43,7 @@ class FinalReportModule:
         )
 
     def _on_generate_report(self, _=None) -> None:
+        """Generate the report and display the resulting HTML."""
         if self.on_busy:
             self.on_busy(True, "Gerando relatório...")
         with self.out:
