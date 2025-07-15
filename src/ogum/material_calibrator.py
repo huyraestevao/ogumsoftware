@@ -7,8 +7,8 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-# curve_fit não é mais necessário para a função fit
-from scipy.optimize import curve_fit
+# A importação do curve_fit não é mais necessária, pois usamos polyfit
+# from scipy.optimize import curve_fit
 
 from .core import R
 from .processing import calculate_log_theta
