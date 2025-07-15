@@ -27,9 +27,12 @@ def create_unit_mesh(mesh_size: float) -> Any:
     return mesh
 
 
+# --- ALTERAÇÃO 1: Adicionar Ea e A como argumentos da função ---
 def densify_mesh(
     mesh,
     temperature_history: List[Tuple[float, float]],
+    Ea: float,
+    A: float,
     solver_options: dict | None = None,
 ) -> np.ndarray:
     """Resolve a densificação via ``SOVSSolver`` em cada célula da malha.
@@ -41,6 +44,10 @@ def densify_mesh(
     temperature_history : list of (time_s, temp_C)
         Sequência de pares ``(tempo em s, temperatura em \N{DEGREE CELSIUS})``
         que definem ``T(t)``.
+    Ea : float
+        Activation energy in kJ/mol.
+    A : float
+        Pre-exponential factor (1/s).
     solver_options : dict, optional
         Parâmetros adicionais para ``SOVSSolver``.
 
@@ -56,7 +63,8 @@ def densify_mesh(
     temps_k = np.array(temps_c, dtype=float) + 273.15
     times_arr = np.asarray(times, dtype=float)
 
-    solver = SOVSSolver(**(solver_options or {}))
+    # --- ALTERAÇÃO 2: Passar os parâmetros ao criar o solver ---
+    solver = SOVSSolver(Ea=Ea, A=A, **(solver_options or {}))
 
     num_cells = mesh.topology.index_map(mesh.topology.dim).size_local
     densities = []
@@ -67,9 +75,12 @@ def densify_mesh(
     return np.array(densities)
 
 
+# --- ALTERAÇÃO 3: Atualizar a função assíncrona para também passar Ea e A ---
 def densify_mesh_async(
     mesh: Any,
     temperature_history: List[Tuple[float, float]],
+    Ea: float,
+    A: float,
     solver_options: dict | None = None,
     callback: Callable | None = None,
 ) -> tuple[Thread, dict]:
@@ -81,6 +92,10 @@ def densify_mesh_async(
         Mesh used for the calculation.
     temperature_history : list of (time_s, temp_C)
         Thermal history ``T(t)``.
+    Ea : float
+        Activation energy in kJ/mol.
+    A : float
+        Pre-exponential factor (1/s).
     solver_options : dict, optional
         Extra options for :class:`~ogum.sovs.SOVSSolver`.
     callback : callable, optional
@@ -98,7 +113,7 @@ def densify_mesh_async(
     def _target() -> None:
         try:
             result["densities"] = densify_mesh(
-                mesh, temperature_history, solver_options
+                mesh, temperature_history, Ea, A, solver_options
             )
         except Exception as exc:  # pragma: no cover - best effort
             result["error"] = exc
