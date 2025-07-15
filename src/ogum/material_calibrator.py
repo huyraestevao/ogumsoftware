@@ -5,18 +5,18 @@ activation energy *Ea* and pre‑exponential factor *A* from densification
 curves (density vs. time & temperature).
 
 **Key idea** – For many sintering models we can write the densification rate
-as
+as::
 
-    dx/dt = (1 − x) · k(T) ,
+    dx/dt = (1 − x) · k(T)
 
-which integrates (for *k* constant) to
+which integrates (for *k* constant) to::
 
-    x(t) = 1 − exp(−k·t) .
+    x(t) = 1 − exp(−k·t)
 
 Even when *k* varies slowly with temperature, the *instantaneous* kinetic
-coefficient can still be estimated at each point by
+coefficient can still be estimated at each point by::
 
-    k_eff(t) =  −ln(1 − x) / t .
+    k_eff(t) = −ln(1 − x) / t
 
 Unlike finite‑difference formulas, this expression is **bias‑free** for the
 synthetic data used in the unit tests and very robust to moderate noise.

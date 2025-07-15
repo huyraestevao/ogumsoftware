@@ -23,15 +23,20 @@ try:
 except Exception:  # pragma: no cover - optional dependency
 
     class _Dummy:
+        """Fallback widget used when ``ipywidgets`` is unavailable."""
+
         def __getattr__(self, name):
+            """Raise an error indicating the missing optional dependency."""
             raise RuntimeError("ipywidgets is required for GUI functions")
 
     widgets = _Dummy()
 
     def display(*args, **kwargs):  # type: ignore
+        """Stub ``display`` when running without IPython."""
         pass
 
     def HTML(text):  # type: ignore
+        """Return ``text`` unchanged as a minimal HTML stub."""
         return text
 
 

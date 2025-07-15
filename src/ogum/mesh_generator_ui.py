@@ -61,6 +61,7 @@ class MeshGeneratorUI:
         self._update()
 
     def _update(self, _=None) -> None:
+        """Regenerate and plot the mesh using current widget values."""
         with self.output:
             clear_output(wait=True)
             try:
