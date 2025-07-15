@@ -1,5 +1,20 @@
-"""Tools for calibrating material kinetics from flash sintering experiments."""
-# ruff: noqa: D416
+"""Tools for calibrating material kinetics from flash‑sintering experiments.
+
+This module provides the ``MaterialCalibrator`` class, which extracts the
+activation energy *Ea* and pre‑exponential factor *A* from densification
+curves (density vs. time & temperature). The fitting routine implements a
+straight‑line Arrhenius regression on
+
+    ln k  =  ln A  −  Ea / (R T)
+
+where the kinetic coefficient *k* is obtained point‑wise as:
+
+    k_i = (dx/dt)_i / (1 − x_i)
+
+using **backward finite differences** so that *x*, *T*, and the derivative
+are evaluated at the same instant.  This avoids the positive bias observed
+with centred differences when temperature increases during the run.
+"""
 
 from __future__ import annotations
 
@@ -7,100 +22,127 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
-# A importação do curve_fit não é mais necessária, pois usamos polyfit
-# from scipy.optimize import curve_fit
 
-from .core import R
+from .core import R  # universal gas constant (J mol⁻¹ K⁻¹)
 from .processing import calculate_log_theta
 
+# ------------------------------------------------------------------------------------------------------------------
 
 class MaterialCalibrator:
-    """Calibrate activation energy and pre--exponential factor."""
+    """Calibrate activation energy (Ea, kJ mol⁻¹) and pre‑exponential factor (A, s⁻¹)."""
+
+    # --------------------------------------------------------------------------------------------------------------
+    # Construction & helpers
+    # --------------------------------------------------------------------------------------------------------------
 
     def __init__(self, experiments: Union[pd.DataFrame, List[pd.DataFrame]]) -> None:
-        """Store experiment data."""
+        """Store one or more experimental DataFrames.
+
+        Each DataFrame must contain the columns:
+            * ``Time_s``        – time in seconds
+            * ``Temperature_C`` – temperature in °C
+            * ``DensidadePct``  – relative density in *percent*
+        """
+        self.experiments: List[pd.DataFrame]
         if isinstance(experiments, pd.DataFrame):
             self.experiments = [experiments]
         else:
             self.experiments = list(experiments)
 
+    # --------------------------------------------------------------------------------------------------------------
+    # Core calibration routine
+    # --------------------------------------------------------------------------------------------------------------
+
     @staticmethod
-    def fit(
-        experiments: Union[pd.DataFrame, List[pd.DataFrame]],
-    ) -> Tuple[float, float]:
-        """Return ``(Ea_kj, A)`` fitted from the provided experiments.
-        (Versão final, usando regressão linear direta para máxima robustez)
+    def fit(experiments: Union[pd.DataFrame, List[pd.DataFrame]]) -> Tuple[float, float]:
+        """Return ``(Ea_kJ, A)`` fitted from the provided experiments.
+
+        The method stacks all valid ``(T, ln k)`` pairs from the input runs and
+        performs a simple least‑squares *linear* regression of ``ln k`` against
+        ``1/T`` using :pyfunc:`numpy.polyfit` (degree 1).  No nonlinear solver
+        is required and the approach is numerically robust even with moderate
+        noise.
         """
-        exps = (
-            [experiments]
-            if isinstance(experiments, pd.DataFrame)
-            else list(experiments)
-        )
-        temps: List[np.ndarray] = []
-        ys: List[np.ndarray] = []
+        # Normalise input to a list of DataFrames
+        exps = [experiments] if isinstance(experiments, pd.DataFrame) else list(experiments)
+
+        T_pool: List[np.ndarray] = []      # Kelvin
+        ln_k_pool: List[np.ndarray] = []   # ln(s⁻¹)
 
         for df in exps:
-            t = df["Time_s"].to_numpy(dtype=float)
-            T = df["Temperature_C"].to_numpy(dtype=float) + 273.15
-            x = df["DensidadePct"].to_numpy(dtype=float) / 100.0
+            # ---- Extract data ------------------------------------------------------------------------------------
+            t = df["Time_s"].to_numpy(float)
+            T = df["Temperature_C"].to_numpy(float) + 273.15  # convert °C → K
+            x = df["DensidadePct"].to_numpy(float) / 100.0    # percent → fraction (0‑1)
+
             if t.size < 2:
-                continue
-            dxdt = np.gradient(x, t)
-
-            with np.errstate(divide='ignore', invalid='ignore'):
-                arg = dxdt / (1 - x)
-            
-            mask = (arg > 0) & (x >= 0) & (x < 1) & np.isfinite(arg)
-
-            if not np.any(mask):
+                # Need at least two points for a derivative
                 continue
 
-            temps.append(T[mask])
-            ys.append(np.log(arg[mask]))
+            # ---- Backward finite difference ---------------------------------------------------------------------
+            dx = np.diff(x)          # x_i − x_{i-1}
+            dt = np.diff(t)          # Δt (s)
+            k_i = dx / dt / (1.0 - x[:-1])   # k evaluated at t_{i-1}
+            T_i = T[:-1]                       # matching temperature
 
-        if not temps:
-            raise ValueError("No valid data for fitting")
+            mask = (k_i > 0) & np.isfinite(k_i)
+            if mask.any():
+                T_pool.append(T_i[mask])
+                ln_k_pool.append(np.log(k_i[mask]))
 
-        T_all = np.concatenate(temps)
-        Y = np.concatenate(ys)
+        if not T_pool:
+            raise ValueError("No valid data for fitting – check input DataFrames")
 
-        # --- CORREÇÃO FINAL: Usar a regressão linear como a solução direta ---
-        # O modelo é Y = m*X + c, onde X = 1/T, m = -Ea*1000/R, c = ln(A)
-        # O polyfit é a ferramenta perfeita e mais estável para isso.
-        try:
-            # Fit a line (degree 1 polynomial) to the transformed data
-            slope, intercept = np.polyfit(1.0 / T_all, Y, deg=1)
-    
-            # Calculate physical parameters from the regression
-            Ea = -slope * R / 1000.0  # Activation energy in kJ/mol
-            A = np.exp(intercept)      # Pre-exponential factor
-    
-            return float(Ea), float(A)
-        except (np.linalg.LinAlgError, ValueError):
-             # If polyfit fails (e.g., insufficient data), return NaN
-            return np.nan, np.nan
+        X = 1.0 / np.concatenate(T_pool)    # 1/T  (K⁻¹)
+        Y = np.concatenate(ln_k_pool)       # ln(k)
 
-    def simulate_synthetic(
-        self, ea: float, a: float, time_array: np.ndarray
-    ) -> pd.DataFrame:
-        """Generate synthetic experiment data."""
+        # ---- Linear regression (Y = m X + c) ---------------------------------------------------------------------
+        slope, intercept = np.polyfit(X, Y, deg=1)
+
+        # Convert slope/intercept to physical parameters
+        Ea_kJ = (-slope * R) / 1000.0       # J → kJ
+        A = float(np.exp(intercept))
+
+        return float(Ea_kJ), A
+
+    # --------------------------------------------------------------------------------------------------------------
+    # Synthetic data generator (useful for tests) ------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------------------------
+
+    @staticmethod
+    def simulate_synthetic(ea_kJ: float, A: float, time_array: np.ndarray) -> pd.DataFrame:
+        """Generate a synthetic flash‑sintering run for unit testing.
+
+        Parameters
+        ----------
+        ea_kJ
+            Activation energy in *kJ mol⁻¹*.
+        A
+            Pre‑exponential factor in *s⁻¹*.
+        time_array
+            1‑D array of time points (s).
+        """
+        # Linear temperature ramp – purely illustrative
         T_c = np.linspace(1000.0, 1050.0, num=len(time_array))
         T_k = T_c + 273.15
-        
-        k = a * np.exp(-(ea * 1000.0) / (R * T_k))
-        dens = 1 - np.exp(-k * time_array)
-        return pd.DataFrame(
-            {
-                "Time_s": time_array,
-                "Temperature_C": T_c,
-                "DensidadePct": dens * 100.0,
-            }
-        )
+
+        k = A * np.exp(-(ea_kJ * 1000.0) / (R * T_k))  # back to J in numerator
+        dens = 1.0 - np.exp(-k * time_array)
+
+        return pd.DataFrame({
+            "Time_s": time_array,
+            "Temperature_C": T_c,
+            "DensidadePct": dens * 100.0,
+        })
+
+    # --------------------------------------------------------------------------------------------------------------
+    # Utility: master curve transformation -----------------------------------------------------------------------
+    # --------------------------------------------------------------------------------------------------------------
 
     def curve_master_analysis(self) -> pd.DataFrame:
-        """Return master curve analysis for stored experiments."""
-        ea, _ = self.fit(self.experiments)
-        frames = [calculate_log_theta(df, ea) for df in self.experiments]
+        """Return *log‑theta* master curve for the stored experiments."""
+        ea_kJ, _ = self.fit(self.experiments)
+        frames = [calculate_log_theta(df, ea_kJ) for df in self.experiments]
         return pd.concat(frames, ignore_index=True)
 
 
