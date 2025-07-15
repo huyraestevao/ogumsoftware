@@ -37,7 +37,7 @@ class MaterialCalibrator:
         else:
             self.experiments = list(experiments)
 
-    @staticmethod
+@staticmethod
     def fit(
         experiments: Union[pd.DataFrame, List[pd.DataFrame]],
     ) -> Tuple[float, float]:
@@ -72,11 +72,17 @@ class MaterialCalibrator:
             if t.size < 2:
                 continue
             dxdt = np.gradient(x, t)
-            mask = (dxdt > 0) & (x > 0) & (x < 1)
+            
+            # ALTERAÇÃO 1: Adicionar uma proteção para o argumento do log
+            # Garantir que o termo dentro do log seja sempre positivo
+            arg = dxdt / (1 - x)
+            mask = (arg > 0) & (x > 0) & (x < 1)
+
             if not np.any(mask):
                 continue
+            
             temps.append(T[mask])
-            ys.append(np.log(dxdt[mask] / (1 - x[mask])))
+            ys.append(np.log(arg[mask]))
 
         if not temps:
             raise ValueError("No valid data for fitting")
@@ -85,17 +91,23 @@ class MaterialCalibrator:
         Y = np.concatenate(ys)
 
         def model(T, Ea, A):
-            return np.log(A) - Ea * 1000.0 / (R * T)
+            # Adicionamos um pequeno valor (epsilon) para segurança numérica dentro do log
+            A_safe = np.maximum(A, 1e-15)
+            return np.log(A_safe) - Ea * 1000.0 / (R * T)
 
         # linear regression as initial guess
         coeffs = np.polyfit(1.0 / T_all, Y, deg=1)
         slope, intercept = coeffs
         p0 = (-slope * R / 1000.0, float(np.exp(intercept)))
 
-        params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000)
+        # ALTERAÇÃO 2: Adicionar limites (bounds) para os parâmetros
+        # Forçamos o parâmetro 'A' (o segundo na tupla) a ser sempre > 0.
+        bounds = ([-np.inf, 0], [np.inf, np.inf])
+
+        params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds)
         Ea, A = params
         return float(Ea), float(A)
-
+        
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
     ) -> pd.DataFrame:
