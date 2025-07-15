@@ -42,7 +42,7 @@ class MaterialCalibrator:
         experiments: Union[pd.DataFrame, List[pd.DataFrame]],
     ) -> Tuple[float, float]:
         """Return ``(Ea_kj, A)`` fitted from the provided experiments.
-        (Versão final e robusta)
+        (Versão final, simples e robusta)
         """
         exps = (
             [experiments]
@@ -77,6 +77,22 @@ class MaterialCalibrator:
         T_all = np.concatenate(temps)
         Y = np.concatenate(ys)
 
+        # --- ALTERAÇÃO FINAL: Usar a regressão linear como a solução direta ---
+        # O modelo é Y = m*X + c, onde X = 1/T, m = -Ea*1000/R, c = ln(A)
+        # O polyfit é a ferramenta perfeita e mais estável para isso.
+        
+        try:
+            coeffs = np.polyfit(1.0 / T_all, Y, deg=1)
+            slope, intercept = coeffs
+    
+            # Extrai os parâmetros físicos da regressão
+            Ea = -slope * R / 1000.0  # Energia de ativação em kJ/mol
+            A = np.exp(intercept)      # Fator pré-exponencial
+    
+            return float(Ea), float(A)
+        except (np.linalg.LinAlgError, ValueError):
+             # Se o polyfit falhar (dados insuficientes/inválidos), retorna NaN
+            return np.nan, np.nan
         def model(T, Ea, A):
             return np.log(A) - Ea * 1000.0 / (R * T)
 
