@@ -1,14 +1,14 @@
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport  # Importe o ASGITransport
 
-# A importação do 'app' continua necessária para o FastAPI/TestClient
 from ogum.api import app
 
 
 @pytest.mark.asyncio
 async def test_health_endpoint():
-    # CORREÇÃO: removido o argumento 'app=app'
-    async with AsyncClient(base_url="http://test") as client:
+    # CORREÇÃO: Usamos o transport para conectar o cliente ao app em memória
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.get("/health")
     assert resp.status_code == 200
     assert resp.json() == {"status": "ok"}
@@ -22,8 +22,9 @@ async def test_calc_master_endpoint():
         "density_pct": [10.0, 20.0, 30.0],
         "energia_ativacao_kj": 50.0,
     }
-    # CORREÇÃO: removido o argumento 'app=app'
-    async with AsyncClient(base_url="http://test") as client:
+    # CORREÇÃO: Usamos o transport para conectar o cliente ao app em memória
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/calc-master", json=payload)
     assert resp.status_code == 200
     data = resp.json()
@@ -37,8 +38,9 @@ async def test_fem_sim_endpoint():
         "mesh_size": 0.5,
         "history": [(0.0, 1000.0), (1.0, 1000.0)],
     }
-    # CORREÇÃO: removido o argumento 'app=app'
-    async with AsyncClient(base_url="http://test") as client:
+    # CORREÇÃO: Usamos o transport para conectar o cliente ao app em memória
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/fem-sim", json=payload)
     assert resp.status_code == 200
     data = resp.json()
