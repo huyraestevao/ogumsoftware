@@ -101,7 +101,7 @@ class MaterialCalibrator:
         bounds = ([-np.inf, 0], [np.inf, np.inf])
 
         try:
-            params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds)
+            params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds, method='trf')
         except RuntimeError:
             return np.nan, np.nan
         
