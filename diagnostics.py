@@ -9,7 +9,6 @@ Execute localmente com::
 from __future__ import annotations
 
 import importlib
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -73,7 +72,7 @@ def smoke_import() -> bool:
         try:
             importlib.import_module(sub)
             print(f"✓ {sub}")
-        except Exception as exc:  # noqa: BLE001  (queremos capturar qualquer erro)
+        except Exception as exc:  # noqa: BLE001
             ok = False
             print(f"✗ {sub}  —  {exc.__class__.__name__}: {exc}")
     return ok
@@ -135,7 +134,7 @@ def _run(*, include_tests: bool = True) -> bool:
         functional(),
     ]
     if include_tests:
-        checks.insert(2, run_pytest())  # mantém a mesma ordem original
+        checks.insert(2, run_pytest())  # mantém a ordem original
 
     ok = all(checks)
     header("RESULTADO FINAL")
