@@ -116,5 +116,12 @@ def main() -> None:
     print("✅ Ambiente estável" if ok else "❌ Problemas detectados")
     sys.exit(0 if ok else 1)
 
+# ---------------------------------------------------------------------------
+# Public wrapper requerido por CLI e pelos testes
+# ---------------------------------------------------------------------------
+def run_diagnostics() -> None:
+    """Wrapper estável – simplesmente chama :pyfunc:`main`."""
+    main()
+
 if __name__ == "__main__":
     main()
