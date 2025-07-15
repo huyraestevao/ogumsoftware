@@ -21,6 +21,7 @@ jobs:
           python-version: 3.11
           auto-update-conda: true
           channels: conda-forge
+          use-mamba: true
 
       - name: Install package
         shell: bash -l {0}
