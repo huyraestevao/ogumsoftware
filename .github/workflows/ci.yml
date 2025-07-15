@@ -71,7 +71,13 @@ jobs:
       - name: Authenticate Docker to Artifact Registry
         run: gcloud auth configure-docker southamerica-east1-docker.pkg.dev
 
-      # 10. Build e push da imagem -------------------------------------------------
+      # 10. Build docs ---------------------------------------------------------
+      - name: Build docs
+        shell: bash -l {0}
+        run: sphinx-build -b html docs docs/_build/html
+
+
+      # 11. Build e push da imagem -------------------------------------------------
       - name: Build & Push Docker image
         run: |
           docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
