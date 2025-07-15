@@ -41,3 +41,4 @@ dependencies:
       - voila
       - httpx
       - pydantic-settings
+      - pydantic-settings
