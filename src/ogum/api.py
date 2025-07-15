@@ -5,9 +5,11 @@ from __future__ import annotations
 from fastapi import FastAPI
 from pydantic import BaseModel
 import pandas as pd
+import numpy as np # Importar numpy para usar np.nan
 
 from ogum.cms import calc_cms
 from ogum.fem_interface import create_unit_mesh, densify_mesh
+from ogum.processing import calculate_log_theta # Importar a função necessária
 
 app = FastAPI(title="Ogum Sintering API")
 
@@ -21,7 +23,7 @@ class MasterInput(BaseModel):
     energia_ativacao_kj: float
 
 
-# --- ALTERAÇÃO 1: Adicionar os campos Ea e A ao modelo de entrada ---
+# --- CORREÇÃO: Modelo de entrada para /fem-sim atualizado ---
 class FEMInput(BaseModel):
     """Input parameters for the FEM densification solver."""
 
@@ -41,9 +43,14 @@ def calc_master(input: MasterInput) -> dict[str, list[float]]:
             "DensidadePct": input.density_pct,
         }
     )
-    df_out = calc_cms(df, energia_ativacao_kj=input.energia_ativacao_kj)
+    # A função calc_cms foi substituída pela calculate_log_theta que é a usada no resto do código
+    df_out = calculate_log_theta(df, energia_ativacao_kj=input.energia_ativacao_kj)
+    
+    # Tratamento de NaN para ser compatível com JSON
+    logtheta_list = [None if np.isnan(v) else v for v in df_out["logtheta"].tolist()]
+
     return {
-        "logtheta": df_out["logtheta"].tolist(),
+        "logtheta": logtheta_list,
         "valor": df_out["valor"].tolist(),
         "tempo_s": df_out["tempo_s"].tolist(),
     }
@@ -53,10 +60,10 @@ def calc_master(input: MasterInput) -> dict[str, list[float]]:
 def fem_sim(input: FEMInput) -> dict[str, list[float]]:
     """Simulate densification across a mesh using ``SOVSSolver``."""
     mesh = create_unit_mesh(input.mesh_size)
-
-    # --- ALTERAÇÃO 2: Passar os novos parâmetros para a função seguinte ---
+    
+    # --- CORREÇÃO: Passando Ea e A para a função de simulação ---
     densities = densify_mesh(mesh, input.history, Ea=input.Ea, A=input.A)
-
+    
     return {"densities": densities.tolist()}
 
 
