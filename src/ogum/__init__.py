@@ -1,5 +1,12 @@
 """Ogum Sintering modules."""
 
+from importlib.metadata import PackageNotFoundError, version
+
+try:  # retrieving distribution version
+    __version__ = version("ogum-sintering-suite")
+except PackageNotFoundError:  # running in editable mode
+    __version__ = "0.dev0"
+
 from .core import (
     R,
     SinteringDataRecord,
