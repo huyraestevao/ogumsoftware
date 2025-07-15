@@ -7,6 +7,7 @@ from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
+# curve_fit não é mais necessário para a função fit
 from scipy.optimize import curve_fit
 
 from .core import R
@@ -14,24 +15,10 @@ from .processing import calculate_log_theta
 
 
 class MaterialCalibrator:
-    """Calibrate activation energy and pre--exponential factor.
-
-    Parameters
-    ----------
-    experiments : Union[pd.DataFrame, List[pd.DataFrame]]
-        One or more experimental datasets with columns ``Time_s``,
-        ``Temperature_C`` and ``DensidadePct``.
-    """
+    """Calibrate activation energy and pre--exponential factor."""
 
     def __init__(self, experiments: Union[pd.DataFrame, List[pd.DataFrame]]) -> None:
-        """Store experiment data.
-
-        Parameters
-        ----------
-        experiments
-            Single DataFrame or list of DataFrames containing the experimental
-            columns.
-        """
+        """Store experiment data."""
         if isinstance(experiments, pd.DataFrame):
             self.experiments = [experiments]
         else:
@@ -97,8 +84,6 @@ class MaterialCalibrator:
         self, ea: float, a: float, time_array: np.ndarray
     ) -> pd.DataFrame:
         """Generate synthetic experiment data."""
-        # CORREÇÃO: Adicionada uma variação de temperatura para que o 
-        # problema de ajuste seja matematicamente possível.
         T_c = np.linspace(1000.0, 1050.0, num=len(time_array))
         T_k = T_c + 273.15
         
