@@ -1,79 +1,42 @@
 # ======================================================================
 #          Arquivo de Ambiente Conda para o Projeto Ogum
 # ======================================================================
-# Define o nome do ambiente a ser criado.
 name: ogum
-
-# Canal principal para pacotes científicos, garantindo compatibilidade e
-# as versões mais atualizadas. É a melhor prática usar apenas conda-forge
-# quando possível para evitar conflitos de dependência.
 channels:
   - conda-forge
 
 dependencies:
-  # ----------------------------------------------------------------------
-  # 1. Base do Ambiente e Ferramentas de Gerenciamento
-  # ----------------------------------------------------------------------
-  # Define a versão do Python como a base para todo o projeto.
-  # ATUALIZADO conforme nossa decisão.
+  # 1. Base do Ambiente
   - python=3.11
-
-  # Inclui o Mamba para ser o resolvedor de dependências padrão.
-  # Isso acelera drasticamente a criação e atualização do ambiente.
   - mamba
-
-  # Inclui o Pip para instalar pacotes que não estão disponíveis no Conda.
   - pip
 
-  # ----------------------------------------------------------------------
-  # 2. Framework de Simulação e Visualização (Core Científico)
-  # ----------------------------------------------------------------------
-  # Framework principal para simulação por elementos finitos (versão X).
-  - fenics-dolfinx
-
-  # Gerador de malha 3D.
+  # 2. Framework de Simulação e Visualização
+  - fenics-dolfinx           # suporta Python 3.11 :contentReference[oaicite:0]{index=0}
   - gmsh
-
-  # Kit de ferramentas para visualização 3D.
   - pyvista
-
-  # Bindings Python para implementações de MPI (Message Passing Interface).
   - mpi4py
 
-  # ----------------------------------------------------------------------
-  # 3. Bibliotecas de Análise de Dados e Machine Learning
-  # ----------------------------------------------------------------------
+  # 3. Bibliotecas de Análise de Dados e ML
   - numpy
   - pandas
   - scipy
   - scikit-learn
   - matplotlib
-  - openpyxl  # Para interação do Pandas com arquivos Excel.
+  - openpyxl
 
-  # ----------------------------------------------------------------------
-  # 4. Ferramentas de Desenvolvimento e Qualidade de Código
-  # ----------------------------------------------------------------------
-  # Framework de testes.
+  # 4. Ferramentas de Desenvolvimento e Testes
   - pytest
-  - pytest-cov      # Para análise de cobertura de testes.
-  - pytest-asyncio  # Para testar código assíncrono (relevante para FastAPI).
-
-  # Linter de Python extremamente rápido.
+  - pytest-cov
+  - pytest-asyncio
   - ruff
 
-  # ----------------------------------------------------------------------
-  # 5. Dependências do Pip (Pacotes não disponíveis no Conda-Forge)
-  # ----------------------------------------------------------------------
-  # Use esta seção para pacotes que só existem no PyPI.
+  # 5. Dependências de Interface / Jupyter
+  - ipywidgets               # ← novo: requerido por ogum.core
+
+  # 6. Pacotes via Pip
   - pip:
-      # Framework para criação de APIs de alta performance.
       - fastapi
-
-      # Servidor ASGI para rodar o FastAPI.
       - uvicorn[standard]
-
-      # Para transformar notebooks Jupyter em aplicações web.
       - voila
-
-      # Cliente HTTP assíncrono, ideal para FastAPI.
       - httpx
