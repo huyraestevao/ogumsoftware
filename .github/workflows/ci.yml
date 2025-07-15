@@ -1,45 +1,57 @@
 name: CI
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+
 jobs:
-  test:
+  build-and-push:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-          - name: Set up Conda
-            uses: conda-incubator/setup-miniconda@v3
-            with:
-              environment-file: environment.yml
-              activate-environment: ogum
-              python-version: 3.11
-              auto-update-conda: true
-              channels: conda-forge
-
-
-      - name: Install system packages
-        run: sudo apt-get update && sudo apt-get install -y libglu1-mesa
-        shell: bash -l {0}
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install -e .
-        shell: bash -l {0}
-
-      - name: Run tests with coverage
-        run: pytest --cov=ogum --cov-report=xml
-        shell: bash -l {0}
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
         with:
-          files: ./coverage.xml
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          environment-file: environment.yml
+          activate-environment: ogum
+          python-version: 3.11
+          auto-update-conda: true
+          channels: conda-forge
+
+      - name: Install package
+        shell: bash -l {0}
+        run: pip install -e .
+
+      - name: Lint (ruff)
+        shell: bash -l {0}
+        run: |
+          ruff check --exit-zero src
+          ruff format --check src
+
+      - name: Run tests
+        shell: bash -l {0}
+        run: pytest --cov=ogum --cov-report=xml
+
+      - name: Configure GCloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Authenticate Docker to Artifact Registry
+        run: gcloud auth configure-docker southamerica-east1-docker.pkg.dev
+
+      - name: Build & Push Docker image
+        run: |
+          docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
+          docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage.xml
