@@ -45,11 +45,14 @@ def calculate_log_theta(
 
     theta_inst = (1.0 / T_k) * np.exp(-Ea_j / (R * T_k))
     integrated = cumtrapz(
-        theta_inst, df_ensaio[time_col].to_numpy(dtype=float), initial=0
+        theta_inst,
+        df_ensaio[time_col].to_numpy(dtype=float),
+        initial=0,
     )
 
     with np.errstate(divide="ignore", invalid="ignore"):
-        log_integrated = np.log10(integrated)
+        safe_int = np.where(integrated == 0, np.finfo(float).tiny, integrated)
+        log_integrated = np.log10(safe_int)
     log_integrated[~np.isfinite(log_integrated)] = np.nan
 
     return pd.DataFrame(

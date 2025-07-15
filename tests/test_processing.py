@@ -25,3 +25,16 @@ def test_calculate_log_theta_missing_columns():
     df = pd.DataFrame({"Time_s": [0, 1], "Temperature_C": [100, 110]})
     with pytest.raises(ValueError):
         calculate_log_theta(df, 50.0)
+
+
+def test_calculate_log_theta_no_nan():
+    df = pd.DataFrame(
+        {
+            "Time_s": [0, 1, 2],
+            "Temperature_C": [100.0, 100.0, 100.0],
+            "DensidadePct": [0.0, 10.0, 20.0],
+        }
+    )
+    result = calculate_log_theta(df, 60)
+
+    assert result["logtheta"].isna().sum() == 0
