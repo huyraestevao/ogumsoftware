@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  api:
+    build: .
+    command: uvicorn ogum.api:app --reload --host 0.0.0.0 --port 8000
+    ports: ["8000:8000"]
+  voila:
+    build: .
+    command: voila notebooks/app.ipynb --port=8866 --no-browser --Voila.ip --Voila.base_url=/
+    ports: ["8866:8866"]
+    depends_on: [api]
