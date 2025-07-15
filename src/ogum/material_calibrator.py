@@ -38,54 +38,78 @@ class MaterialCalibrator:
             self.experiments = list(experiments)
 
     @staticmethod
-def fit(
-    experiments: Union[pd.DataFrame, List[pd.DataFrame]],
-) -> Tuple[float, float]:
-    # ... (código de preparação de dados) ...
-    for df in exps:
-        # ...
-        dxdt = np.gradient(x, t)
+    def fit(
+        experiments: Union[pd.DataFrame, List[pd.DataFrame]],
+    ) -> Tuple[float, float]:
+        """Return ``(Ea_kj, A)`` fitted from the provided experiments.
 
-        # --- CORREÇÃO 1: Preparação de dados mais robusta ---
-        # Suprime avisos de divisão por zero e usa uma máscara para filtrar
-        # apenas valores válidos (positivos e finitos).
-        with np.errstate(divide='ignore', invalid='ignore'):
-            arg = dxdt / (1 - x)
+        The regression is performed on ``ln(dens_rate / (1-x))`` versus ``1/T``,
+        assuming first-order kinetics.
+
+        Parameters
+        ----------
+        experiments
+            List of DataFrames or a single DataFrame as accepted by
+            :class:`MaterialCalibrator`.
+
+        Returns
+        -------
+        Tuple[float, float]
+            Estimated activation energy in kJ/mol and pre-exponential factor.
+        """
+        exps = (
+            [experiments]
+            if isinstance(experiments, pd.DataFrame)
+            else list(experiments)
+        )
+        temps: List[np.ndarray] = []
+        ys: List[np.ndarray] = []
+
+        for df in exps:
+            t = df["Time_s"].to_numpy(dtype=float)
+            T = df["Temperature_C"].to_numpy(dtype=float) + 273.15
+            x = df["DensidadePct"].to_numpy(dtype=float) / 100.0
+            if t.size < 2:
+                continue
+            dxdt = np.gradient(x, t)
+
+            # --- CORREÇÃO 1: Preparação de dados mais robusta ---
+            with np.errstate(divide='ignore', invalid='ignore'):
+                arg = dxdt / (1 - x)
+            
+            mask = (arg > 0) & (x >= 0) & (x < 1) & np.isfinite(arg)
+
+            if not np.any(mask):
+                continue
+
+            temps.append(T[mask])
+            ys.append(np.log(arg[mask]))
+
+        if not temps:
+            raise ValueError("No valid data for fitting")
+
+        T_all = np.concatenate(temps)
+        Y = np.concatenate(ys)
+
+        def model(T, Ea, A):
+            return np.log(A) - Ea * 1000.0 / (R * T)
+
+        # linear regression as initial guess
+        coeffs = np.polyfit(1.0 / T_all, Y, deg=1)
+        slope, intercept = coeffs
+        p0 = (-slope * R / 1000.0, float(np.exp(intercept)))
+
+        # --- CORREÇÃO 2: Adicionar limites (bounds) para os parâmetros ---
+        bounds = ([-np.inf, 0], [np.inf, np.inf])
+
+        try:
+            params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds)
+        except RuntimeError:
+            return np.nan, np.nan
         
-        mask = (arg > 0) & (x >= 0) & (x < 1) & np.isfinite(arg)
+        Ea, A = params
+        return float(Ea), float(A)
 
-        if not np.any(mask):
-            continue
-
-        temps.append(T[mask])
-        ys.append(np.log(arg[mask]))
-
-    # ... (código de concatenação) ...
-
-    def model(T, Ea, A):
-        # A função do modelo em si permanece a mesma.
-        return np.log(A) - Ea * 1000.0 / (R * T)
-
-    # ... (código para chute inicial) ...
-
-    # --- CORREÇÃO 2: Adicionar limites (bounds) para os parâmetros ---
-    # Força o parâmetro 'A' a ser sempre >= 0.
-    # Esta é a mudança mais importante para estabilizar o otimizador.
-    bounds = ([-np.inf, 0], [np.inf, np.inf])
-
-    try:
-        # A chamada ao otimizador agora inclui os 'bounds'.
-        params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds)
-    except RuntimeError:
-        # --- CORREÇÃO 3: Tratamento de erro defensivo ---
-        # Se, mesmo com os bounds, a otimização falhar, retornamos um
-        # resultado inválido (NaN) para não travar o programa.
-        return np.nan, np.nan
-    
-    Ea, A = params
-    return float(Ea), float(A)
-
-    
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
     ) -> pd.DataFrame:
@@ -130,6 +154,5 @@ def fit(
         ea, _ = self.fit(self.experiments)
         frames = [calculate_log_theta(df, ea) for df in self.experiments]
         return pd.concat(frames, ignore_index=True)
-
 
 __all__ = ["MaterialCalibrator"]
