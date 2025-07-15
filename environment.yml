@@ -2,8 +2,9 @@ name: ogum
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
-  - dolfinx
+  - python=3.10
+  - mamba
+  - fenics-dolfinx
   - gmsh
   - pyvista
   - mpi4py
