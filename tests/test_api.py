@@ -1,24 +1,16 @@
 import pytest
-from httpx import AsyncClient, ASGITransport  # Importe o ASGITransport
+from httpx import AsyncClient, ASGITransport
 
 from ogum.api import app
 
+
 @pytest.mark.asyncio
-async def test_fem_sim_endpoint():
-    payload = {
-        "mesh_size": 0.5,
-        "history": [(0.0, 1000.0), (1.0, 1000.0)],
-        "Ea": 60.0,  # PARÂMETRO ADICIONADO
-        "A": 2.0,    # PARÂMETRO ADICIONADO
-    }
-    # Usamos o transport para conectar o cliente ao app em memória
+async def test_health_endpoint():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
-        resp = await client.post("/fem-sim", json=payload)
+        resp = await client.get("/health")
     assert resp.status_code == 200
-    data = resp.json()
-    assert "densities" in data
-    assert isinstance(data["densities"], list)
+    assert resp.json() == {"status": "ok"}
 
 
 @pytest.mark.asyncio
@@ -29,7 +21,6 @@ async def test_calc_master_endpoint():
         "density_pct": [10.0, 20.0, 30.0],
         "energia_ativacao_kj": 50.0,
     }
-    # CORREÇÃO: Usamos o transport para conectar o cliente ao app em memória
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/calc-master", json=payload)
@@ -44,8 +35,9 @@ async def test_fem_sim_endpoint():
     payload = {
         "mesh_size": 0.5,
         "history": [(0.0, 1000.0), (1.0, 1000.0)],
+        "Ea": 60.0,
+        "A": 2.0,
     }
-    # CORREÇÃO: Usamos o transport para conectar o cliente ao app em memória
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as client:
         resp = await client.post("/fem-sim", json=payload)
