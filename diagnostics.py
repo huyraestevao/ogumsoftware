@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""
-Diagnóstico rápido do ambiente Ogum Sintering.
-Execute com:  python diagnostics.py
+"""Diagnóstico rápido do ambiente Ogum Sintering.
+
+Execute com: python diagnostics.py
 """
 
 import importlib
