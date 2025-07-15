@@ -80,15 +80,15 @@ class MaterialCalibrator:
         def model(T, Ea, A):
             return np.log(A) - Ea * 1000.0 / (R * T)
 
-        # --- ALTERAÇÃO PRINCIPAL: Usar um chute inicial (p0) fixo e robusto ---
-        # Em vez de um polyfit instável, damos valores razoáveis para o otimizador começar.
+        # --- CORREÇÃO FINAL: Usar um chute inicial (p0) fixo e robusto ---
+        # Em vez de um polyfit instável, damos valores razoáveis para o otimizador.
         p0 = (100.0, 1.0)  # (Ea, A)
 
         bounds = ([-np.inf, 0], [np.inf, np.inf])
 
         try:
             params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds, method='trf')
-        except RuntimeError:
+        except (RuntimeError, ValueError):
             return np.nan, np.nan
         
         Ea, A = params
@@ -97,24 +97,9 @@ class MaterialCalibrator:
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
     ) -> pd.DataFrame:
-        """Generate synthetic experiment data.
-
-        Parameters
-        ----------
-        ea : float
-            Activation energy in kJ/mol.
-        a : float
-            Pre-exponential factor (1/s).
-        time_array : np.ndarray
-            Time vector in seconds.
-
-        Returns
-        -------
-        pd.DataFrame
-            Columns ``Time_s``, ``Temperature_C`` and ``DensidadePct``.
-        """
-        # CORREÇÃO: Adicionada uma pequena variação de temperatura para
-        # que o problema de ajuste seja matematicamente possível.
+        """Generate synthetic experiment data."""
+        # CORREÇÃO: Adicionada uma variação de temperatura para que o 
+        # problema de ajuste seja matematicamente possível.
         T_c = np.linspace(1000.0, 1050.0, num=len(time_array))
         T_k = T_c + 273.15
         
@@ -127,17 +112,9 @@ class MaterialCalibrator:
                 "DensidadePct": dens * 100.0,
             }
         )
+
     def curve_master_analysis(self) -> pd.DataFrame:
-        """Return master curve analysis for stored experiments.
-
-        Uses :func:`~ogum.processing.calculate_log_theta` with the fitted
-        activation energy.
-
-        Returns
-        -------
-        pd.DataFrame
-            Concatenated ``logtheta`` results for all experiments.
-        """
+        """Return master curve analysis for stored experiments."""
         ea, _ = self.fit(self.experiments)
         frames = [calculate_log_theta(df, ea) for df in self.experiments]
         return pd.concat(frames, ignore_index=True)
