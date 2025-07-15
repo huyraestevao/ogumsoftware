@@ -8,6 +8,5 @@ class Settings(BaseSettings):
     docker_repo: str = Field(..., env="DOCKER_REPO")
 
 
-settings = Settings()  # carregado na importação
 
-__all__ = ["settings"]
+__all__ = ["Settings"]

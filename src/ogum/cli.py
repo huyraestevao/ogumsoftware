@@ -14,7 +14,10 @@ def cli():
 @cli.command()
 def doctors():
     """Run environment diagnostics."""
-    diagnostics.run_diagnostics()
+    ok = diagnostics.run_diagnostics()
+    if not ok:
+        raise SystemExit(1)
+
 
 
 if __name__ == "__main__":
