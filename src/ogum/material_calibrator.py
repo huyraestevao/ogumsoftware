@@ -101,12 +101,14 @@ class MaterialCalibrator:
         bounds = ([-np.inf, 0], [np.inf, np.inf])
 
         try:
+            # AQUI ESTÁ A LINHA ALTERADA:
             params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds, method='trf')
         except RuntimeError:
             return np.nan, np.nan
         
         Ea, A = params
         return float(Ea), float(A)
+
 
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
