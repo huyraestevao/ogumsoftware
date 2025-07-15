@@ -127,17 +127,20 @@ class MaterialCalibrator:
         pd.DataFrame
             Columns ``Time_s``, ``Temperature_C`` and ``DensidadePct``.
         """
-        T_c = 1000.0
-        k = a * np.exp(-(ea * 1000.0) / (R * (T_c + 273.15)))
+        # CORREÇÃO: Adicionada uma pequena variação de temperatura para
+        # que o problema de ajuste seja matematicamente possível.
+        T_c = np.linspace(1000.0, 1050.0, num=len(time_array))
+        T_k = T_c + 273.15
+        
+        k = a * np.exp(-(ea * 1000.0) / (R * T_k))
         dens = 1 - np.exp(-k * time_array)
         return pd.DataFrame(
             {
                 "Time_s": time_array,
-                "Temperature_C": np.full_like(time_array, T_c),
+                "Temperature_C": T_c,
                 "DensidadePct": dens * 100.0,
             }
         )
-
     def curve_master_analysis(self) -> pd.DataFrame:
         """Return master curve analysis for stored experiments.
 
