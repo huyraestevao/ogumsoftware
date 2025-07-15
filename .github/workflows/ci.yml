@@ -32,7 +32,7 @@ jobs:
           activate-environment: ogum
           use-mamba: true
           auto-update-conda: true
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3
           python-version: 3.11           # coerente com environment.yml
 
       # 4. Instalação do pacote em modo editable -----------------------------------
@@ -56,7 +56,8 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
-          file: coverage.xml
+          files: coverage.xml
+#         token: ${{ secrets.CODECOV_TOKEN }}   # descomente se o repo for privado
 
       # 8. Configuração do Google Cloud -------------------------------------------
       - name: Set up GCloud SDK
