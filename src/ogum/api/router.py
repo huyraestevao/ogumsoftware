@@ -42,7 +42,7 @@ class FEMInput(BaseModel):
     A: float
 
 
-@router.post("/calc-master", response_model=MasterOutput)
+@router.post("/calc-master", response_model=MasterOutput, tags=["Master"])
 def calc_master(input: MasterInput) -> dict:
     """Calculate the master curve for a sintering experiment."""
     df = pd.DataFrame(
@@ -61,7 +61,7 @@ def calc_master(input: MasterInput) -> dict:
     }
 
 
-@router.post("/fem-sim")
+@router.post("/fem-sim", tags=["FEM"])
 def fem_sim(input: FEMInput) -> dict[str, list[float]]:
     """Run a simple FEM densification simulation."""
     mesh = create_unit_mesh(input.mesh_size)
@@ -69,7 +69,7 @@ def fem_sim(input: FEMInput) -> dict[str, list[float]]:
     return {"densities": densities.tolist()}
 
 
-@router.get("/health")
+@router.get("/health", tags=["Health"])
 def health() -> dict[str, str]:
     """Return application status."""
     return {"status": "ok"}
