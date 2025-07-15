@@ -7,52 +7,71 @@ on:
     branches: [main]
 
 jobs:
-  build-and-push:
+  build-test-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout
+      # 1. Checkout do código ------------------------------------------------------
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Conda
+      # 2. Cache dos pacotes Conda -------------------------------------------------
+      - name: Cache conda env
+        uses: actions/cache@v4
+        with:
+          path: ~/conda_pkgs_dir          # diretório de cache padrão do Miniconda
+          key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-conda-
+
+      # 3. Criação do ambiente -----------------------------------------------------
+      - name: Set up Conda (mamba)
         uses: conda-incubator/setup-miniconda@v3
         with:
           environment-file: environment.yml
           activate-environment: ogum
-          python-version: 3.10
-          auto-update-conda: true
-          channels: conda-forge
           use-mamba: true
+          auto-update-conda: true
+          miniforge-variant: Mambaforge
+          python-version: 3.11           # coerente com environment.yml
 
+      # 4. Instalação do pacote em modo editable -----------------------------------
       - name: Install package
         shell: bash -l {0}
         run: pip install -e .
 
+      # 5. Lint com Ruff -----------------------------------------------------------
       - name: Lint (ruff)
         shell: bash -l {0}
         run: |
           ruff check --exit-zero src
           ruff format --check src
 
+      # 6. Testes + cobertura ------------------------------------------------------
       - name: Run tests
         shell: bash -l {0}
         run: pytest --cov=ogum --cov-report=xml
 
-      - name: Configure GCloud SDK
+      # 7. Envio da cobertura ao Codecov ------------------------------------------
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: coverage.xml
+
+      # 8. Configuração do Google Cloud -------------------------------------------
+      - name: Set up GCloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
+      # 9. Autenticar Docker no Artifact Registry ----------------------------------
       - name: Authenticate Docker to Artifact Registry
         run: gcloud auth configure-docker southamerica-east1-docker.pkg.dev
 
+      # 10. Build e push da imagem -------------------------------------------------
       - name: Build & Push Docker image
         run: |
           docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
           docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          file: coverage.xml
