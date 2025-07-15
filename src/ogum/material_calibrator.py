@@ -73,7 +73,6 @@ class MaterialCalibrator:
                 continue
             dxdt = np.gradient(x, t)
 
-            # --- CORREÇÃO 1: Preparação de dados mais robusta ---
             with np.errstate(divide='ignore', invalid='ignore'):
                 arg = dxdt / (1 - x)
             
@@ -99,7 +98,6 @@ class MaterialCalibrator:
         slope, intercept = coeffs
         p0 = (-slope * R / 1000.0, float(np.exp(intercept)))
 
-        # --- CORREÇÃO 2: Adicionar limites (bounds) para os parâmetros ---
         bounds = ([-np.inf, 0], [np.inf, np.inf])
 
         try:
@@ -154,5 +152,6 @@ class MaterialCalibrator:
         ea, _ = self.fit(self.experiments)
         frames = [calculate_log_theta(df, ea) for df in self.experiments]
         return pd.concat(frames, ignore_index=True)
+
 
 __all__ = ["MaterialCalibrator"]
