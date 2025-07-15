@@ -38,6 +38,11 @@ Você acessa a interface Voila em [http://localhost:8866](http://localhost:8866)
 e a API em [http://localhost:8000](http://localhost:8000) com docs em
 [http://localhost:8000/docs](http://localhost:8000/docs)
 
+Para desenvolvimento local com autoreload, use:
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
 ## Estrutura do código
 O diretório `src/ogum/` reúne os módulos Python gerados a partir dos notebooks em
 `notebooks/`. Esses notebooks são exportados para arquivos `.py` que dependem
