@@ -42,20 +42,7 @@ class MaterialCalibrator:
         experiments: Union[pd.DataFrame, List[pd.DataFrame]],
     ) -> Tuple[float, float]:
         """Return ``(Ea_kj, A)`` fitted from the provided experiments.
-
-        The regression is performed on ``ln(dens_rate / (1-x))`` versus ``1/T``,
-        assuming first-order kinetics.
-
-        Parameters
-        ----------
-        experiments
-            List of DataFrames or a single DataFrame as accepted by
-            :class:`MaterialCalibrator`.
-
-        Returns
-        -------
-        Tuple[float, float]
-            Estimated activation energy in kJ/mol and pre-exponential factor.
+        (Versão final e robusta)
         """
         exps = (
             [experiments]
@@ -93,22 +80,19 @@ class MaterialCalibrator:
         def model(T, Ea, A):
             return np.log(A) - Ea * 1000.0 / (R * T)
 
-        # linear regression as initial guess
-        coeffs = np.polyfit(1.0 / T_all, Y, deg=1)
-        slope, intercept = coeffs
-        p0 = (-slope * R / 1000.0, float(np.exp(intercept)))
+        # --- ALTERAÇÃO PRINCIPAL: Usar um chute inicial (p0) fixo e robusto ---
+        # Em vez de um polyfit instável, damos valores razoáveis para o otimizador começar.
+        p0 = (100.0, 1.0)  # (Ea, A)
 
         bounds = ([-np.inf, 0], [np.inf, np.inf])
 
         try:
-            # AQUI ESTÁ A LINHA ALTERADA:
             params, _ = curve_fit(model, T_all, Y, p0=p0, maxfev=10000, bounds=bounds, method='trf')
         except RuntimeError:
             return np.nan, np.nan
         
         Ea, A = params
         return float(Ea), float(A)
-
 
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
