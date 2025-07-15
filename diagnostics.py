@@ -1,8 +1,12 @@
 #!/usr/bin/env python
-"""Diagnóstico rápido do ambiente Ogum Sintering.
+"""Diagnóstico rápido do ambiente Ogum Sintering.
 
-Execute com: python diagnostics.py
+Execute localmente com::
+
+    python diagnostics.py
 """
+
+from __future__ import annotations
 
 import importlib
 import os
@@ -10,35 +14,40 @@ import subprocess
 import sys
 from pathlib import Path
 
-# ----------- CONFIGURAÇÕES MÍNIMAS --------------------------------------------------
+# -----------------------------------------------------------------------------#
+#  CONFIGURAÇÕES MÍNIMAS
+# -----------------------------------------------------------------------------#
 REQUIRED_PY = (3, 11)
 REQUIRED_PKGS = {
-    "numpy":  "1.26",
+    "numpy": "1.26",
     "pandas": "2.2",
-    "scipy":  "1.13",
+    "scipy": "1.13",
     "pytest": "8.4",
 }
-# ------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------#
+
 
 def header(title: str) -> None:
-    print(f"\n{'='*10} {title} {'='*10}")
+    print(f"\n{'=' * 10} {title} {'=' * 10}")
 
-# 1. Versões -------------------------------------------------------------------------
-# 1. Versões -------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------#
+# 1. Verificações de versão
+# -----------------------------------------------------------------------------#
 def check_versions() -> bool:
     header("VERSÕES")
     ok = True
 
-    # ---- Python --------------------------------------------------------------------
+    # --- Python ---------------------------------------------------------------
     py_status = (
         "OK"
         if sys.version_info >= REQUIRED_PY
         else f"FAIL (≥{REQUIRED_PY[0]}.{REQUIRED_PY[1]})"
     )
     print(f"Python {sys.version.split()[0]}  {py_status}")
-    ok &= (py_status == "OK")
+    ok &= py_status == "OK"
 
-    # ---- Pacotes --------------------------------------------------------------------
+    # --- Pacotes --------------------------------------------------------------
     for pkg, wanted in REQUIRED_PKGS.items():
         try:
             mod = importlib.import_module(pkg)
@@ -52,24 +61,27 @@ def check_versions() -> bool:
     return ok
 
 
-# 2. Smoke‑test de import ------------------------------------------------------------
+# -----------------------------------------------------------------------------#
+# 2. Smoke‑test de importação dos sub‑módulos principais
+# -----------------------------------------------------------------------------#
 def smoke_import() -> bool:
     header("IMPORT SMOKE‑TEST (ogum.*)")
     ok = True
     root = Path(__file__).resolve().parent
     sys.path.insert(0, str(root))
-    for sub in ["ogum.core",
-                "ogum.material_calibrator",
-                "ogum.processing"]:
+    for sub in ["ogum.core", "ogum.material_calibrator", "ogum.processing"]:
         try:
             importlib.import_module(sub)
             print(f"✓ {sub}")
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001  (queremos capturar qualquer erro)
             ok = False
             print(f"✗ {sub}  —  {exc.__class__.__name__}: {exc}")
     return ok
 
-# 3. pytest --------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------#
+# 3. Execução da suíte pytest do repositório
+# -----------------------------------------------------------------------------#
 def run_pytest() -> bool:
     header("PYTEST SUITE")
     try:
@@ -86,7 +98,10 @@ def run_pytest() -> bool:
         print(exc.stdout.decode())
         return False
 
-# 4. Teste funcional -----------------------------------------------------------------
+
+# -----------------------------------------------------------------------------#
+# 4. Teste funcional rápido (calibração sintética)
+# -----------------------------------------------------------------------------#
 def functional() -> bool:
     header("TESTE FUNCIONAL RÁPIDO")
     import numpy as np
@@ -104,17 +119,23 @@ def functional() -> bool:
     print("✗ Fora da tolerância")
     return False
 
-# 5. Orquestra -----------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------#
+# 5. Orquestrador interno (_run)
+# -----------------------------------------------------------------------------#
 def _run(*, include_tests: bool = True) -> bool:
-    """Executa todas as verificações.  
-    Se *include_tests* for False, **não** executa o pytest interno."""
+    """Executa todas as verificações.
+
+    Se *include_tests* for ``False`` (caso do comando ``ogum doctors``),
+    **não** executa o pytest interno para evitar recursão.
+    """
     checks = [
         check_versions(),
         smoke_import(),
         functional(),
     ]
     if include_tests:
-        checks.insert(2, run_pytest())     # mantém a mesma ordem original
+        checks.insert(2, run_pytest())  # mantém a mesma ordem original
 
     ok = all(checks)
     header("RESULTADO FINAL")
@@ -122,22 +143,22 @@ def _run(*, include_tests: bool = True) -> bool:
     return ok
 
 
+# -----------------------------------------------------------------------------#
+# 6. API pública (usada pela CLI e pelos testes)
+# -----------------------------------------------------------------------------#
 def run_diagnostics() -> bool:
-    """API/CLI: roda diagnóstico **sem** disparar um pytest recursivo."""
+    """Executa o diagnóstico **sem** chamar pytest interno."""
     return _run(include_tests=False)
 
 
-def main() -> None:           # continua útil para `python diagnostics.py`
+# -----------------------------------------------------------------------------#
+# 7. Entry‑point para linha de comando
+# -----------------------------------------------------------------------------#
+def main() -> None:
+    """Roda diagnóstico completo (incluindo pytest) e encerra com exit‑code."""
     ok = _run(include_tests=True)
     sys.exit(0 if ok else 1)
 
-
-# ---------------------------------------------------------------------------
-# Public wrapper requerido por CLI e pelos testes
-# ---------------------------------------------------------------------------
-def run_diagnostics() -> None:
-    """Wrapper estável – simplesmente chama :pyfunc:`main`."""
-    main()
 
 if __name__ == "__main__":
     main()
