@@ -105,16 +105,32 @@ def functional() -> bool:
     return False
 
 # 5. Orquestra -----------------------------------------------------------------------
-def main() -> None:
-    ok = all([
+def _run(*, include_tests: bool = True) -> bool:
+    """Executa todas as verificações.  
+    Se *include_tests* for False, **não** executa o pytest interno."""
+    checks = [
         check_versions(),
         smoke_import(),
-        run_pytest(),
         functional(),
-    ])
+    ]
+    if include_tests:
+        checks.insert(2, run_pytest())     # mantém a mesma ordem original
+
+    ok = all(checks)
     header("RESULTADO FINAL")
     print("✅ Ambiente estável" if ok else "❌ Problemas detectados")
+    return ok
+
+
+def run_diagnostics() -> bool:
+    """API/CLI: roda diagnóstico **sem** disparar um pytest recursivo."""
+    return _run(include_tests=False)
+
+
+def main() -> None:           # continua útil para `python diagnostics.py`
+    ok = _run(include_tests=True)
     sys.exit(0 if ok else 1)
+
 
 # ---------------------------------------------------------------------------
 # Public wrapper requerido por CLI e pelos testes
