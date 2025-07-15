@@ -1,7 +1,7 @@
 import pytest
 from httpx import AsyncClient
 
-# A importação do 'app' continua necessária para o FastAPI/TestClient
+# A importação do 'app' continua necessária, pois o httpx a utiliza nos bastidores
 from ogum.api import app
 
 
