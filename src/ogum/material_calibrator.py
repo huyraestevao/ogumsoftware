@@ -75,13 +75,10 @@ class MaterialCalibrator:
 
             # --- ALTERAÇÃO 1: Preparação de dados mais robusta ---
             # Evita divisão por zero e garante que o argumento do log seja positivo.
-            # Um valor muito pequeno (epsilon) é usado para evitar log(0).
-            epsilon = 1e-12
-            denominator = 1 - x
-            # Previne divisão por zero onde x é próximo de 1
-            denominator[denominator <= 0] = epsilon
-            arg = dxdt / denominator
-            mask = (arg > 0) & (x >= 0) & (x < 1)
+            with np.errstate(divide='ignore', invalid='ignore'):
+                arg = dxdt / (1 - x)
+            
+            mask = (arg > 0) & (x >= 0) & (x < 1) & np.isfinite(arg)
 
             if not np.any(mask):
                 continue
@@ -117,6 +114,8 @@ class MaterialCalibrator:
         
         Ea, A = params
         return float(Ea), float(A)
+
+
     
     def simulate_synthetic(
         self, ea: float, a: float, time_array: np.ndarray
