@@ -1,5 +1,7 @@
 import os
 import sys
+
+# Adiciona o diretório src ao PYTHONPATH para o autodoc encontrar o pacote
 sys.path.insert(0, os.path.abspath("../src"))
 
 from ogum import __version__
