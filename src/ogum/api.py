@@ -21,11 +21,14 @@ class MasterInput(BaseModel):
     energia_ativacao_kj: float
 
 
+# --- ALTERAÇÃO 1: Adicionar os campos Ea e A ao modelo de entrada ---
 class FEMInput(BaseModel):
     """Input parameters for the FEM densification solver."""
 
     mesh_size: float
     history: list[tuple[float, float]]
+    Ea: float
+    A: float
 
 
 @app.post("/calc-master")
@@ -50,7 +53,10 @@ def calc_master(input: MasterInput) -> dict[str, list[float]]:
 def fem_sim(input: FEMInput) -> dict[str, list[float]]:
     """Simulate densification across a mesh using ``SOVSSolver``."""
     mesh = create_unit_mesh(input.mesh_size)
-    densities = densify_mesh(mesh, input.history)
+
+    # --- ALTERAÇÃO 2: Passar os novos parâmetros para a função seguinte ---
+    densities = densify_mesh(mesh, input.history, Ea=input.Ea, A=input.A)
+
     return {"densities": densities.tolist()}
 
 
