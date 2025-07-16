@@ -23,6 +23,8 @@ httpx
 streamlit
 requests
 plotly
+sphinx
+sphinx-rtd-theme
 
 # Testing
 pytest
