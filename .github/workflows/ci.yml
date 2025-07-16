@@ -15,11 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Ativar Conda (garante que o ambiente esteja disponível)
+      # 2. Ativar Conda (login shell)
       - name: Activate Conda environment
-        shell: bash -lc
+        shell: bash -l {0}
         run: |
-          source "$HOME/miniconda3/etc/profile.d/conda.sh"
+          source "${HOME}/miniconda3/etc/profile.d/conda.sh"
           conda activate ogum
 
       # 3. Cache dos pacotes Conda
@@ -44,24 +44,24 @@ jobs:
 
       # 5. Instalar o pacote em modo editable
       - name: Install package
-        shell: bash -lc
+        shell: bash -l {0}
         run: pip install -e .
 
       # 6. Instalar dependências de desenvolvimento
       - name: Install dev dependencies
-        shell: bash -lc
+        shell: bash -l {0}
         run: pip install -r requirements-dev.txt
 
       # 7. Lint com Ruff
       - name: Lint (ruff)
-        shell: bash -lc
+        shell: bash -l {0}
         run: |
           ruff check --exit-zero src
           ruff format --check src || true
 
       # 8. Testes + cobertura
       - name: Run tests
-        shell: bash -lc
+        shell: bash -l {0}
         run: pytest --cov=ogum --cov-report=xml
 
       # 9. Envio da cobertura ao Codecov
@@ -70,29 +70,27 @@ jobs:
         with:
           files: coverage.xml
 
-      # 10. Autenticar o workflow no GCP
-      - name: Authenticate to Google Cloud
+      # 10. Autenticar ao GCP via Workload Identity
+      - name: Authenticate to GCP
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
 
-      # 11. Configuração do GCP via chave JSON (gcloud CLI)
+      # 11. Configuração do SDK do GCP
       - name: Set up GCP SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id:         ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_CREDENTIALS }}
           export_default_credentials: true
 
       # 12. Autenticar Docker no Artifact Registry
       - name: Configure Docker for Artifact Registry
-        shell: bash -lc
         run: |
           gcloud auth configure-docker southamerica-east1-docker.pkg.dev --quiet
 
       # 13. Build & Push da imagem Docker
       - name: Build & Push Docker image
-        shell: bash -lc
+        shell: bash -l {0}
         run: |
           docker build \
             -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest \
