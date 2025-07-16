@@ -10,7 +10,7 @@ dependencies:
   - python=3.11          # versão única
   - mamba
   - pip
-  - pyyaml>=6.0 
+  - pyyaml=6.* 
 
   # 2. Framework de Simulação e Visualização
   - fenics-dolfinx           # suporta Python 3.11 :contentReference[oaicite:0]{index=0}
