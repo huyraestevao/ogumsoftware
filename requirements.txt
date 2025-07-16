@@ -14,7 +14,7 @@ gmsh
 
 # Web API
 fastapi
-uvicorn[standard]
+uvicorn
 httpx
 pydantic<2.0
 pydantic-settings<2.0

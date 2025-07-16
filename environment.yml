@@ -40,7 +40,6 @@ dependencies:
   # 6. Pacotes via Pip
   - pip:
       - fastapi
-      - uvicorn[standard]
       - voila
       - httpx
       - pydantic<2.0
