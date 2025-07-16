@@ -42,5 +42,5 @@ dependencies:
       - uvicorn[standard]
       - voila
       - httpx
-      - pydantic-settings
-      - pydantic-settings
+      - pydantic<2.0
+      - pydantic-settings<2.0
