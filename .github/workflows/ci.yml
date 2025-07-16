@@ -72,13 +72,13 @@ jobs:
         uses: google-github-actions/auth@v1
         with:
           credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+          export_default_credentials: true
 
       # 9. Setup gcloud SDK
       - name: Set up GCP SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id:               ${{ secrets.GCP_PROJECT_ID }}
-          export_default_credentials: true
 
       # 10. Docker + Artifact Registry
       - name: Configure Docker for Artifact Registry
