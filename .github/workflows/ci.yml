@@ -47,25 +47,30 @@ jobs:
         shell: bash -lc
         run: pip install -e .
 
-      # 6. Lint com Ruff
+      # 6. Instalar dependências de desenvolvimento
+      - name: Install dev dependencies
+        shell: bash -lc
+        run: pip install -r requirements-dev.txt
+
+      # 7. Lint com Ruff
       - name: Lint (ruff)
         shell: bash -lc
         run: |
           ruff check --exit-zero src
           ruff format --check src || true
 
-      # 7. Testes + cobertura
+      # 8. Testes + cobertura
       - name: Run tests
         shell: bash -lc
         run: pytest --cov=ogum --cov-report=xml
 
-      # 8. Envio da cobertura ao Codecov
+      # 9. Envio da cobertura ao Codecov
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
           files: coverage.xml
 
-      # 9. Configuração do GCP via chave JSON
+      # 10. Configuração do GCP via chave JSON
       - name: Set up GCP SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -73,28 +78,28 @@ jobs:
           service_account_key: ${{ secrets.GCP_CREDENTIALS }}
           export_default_credentials: true
 
-      # 10. Autenticar Docker no Artifact Registry
+      # 11. Autenticar Docker no Artifact Registry
       - name: Configure Docker for Artifact Registry
         shell: bash -lc
         run: |
           gcloud auth configure-docker southamerica-east1-docker.pkg.dev --quiet
 
-      # 11. Instalar dependências de documentação
+      # 12. Instalar dependências de documentação
       - name: Install documentation dependencies
         shell: bash -lc
         run: |
           pip install sphinx sphinx-rtd-theme
 
-      # 12. Garantir que ~/.local/bin esteja no PATH
+      # 13. Garantir que ~/.local/bin esteja no PATH
       - name: Ensure PATH includes user bin
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      # 13. Build da documentação com Sphinx
+      # 14. Build da documentação com Sphinx
       - name: Build docs
         shell: bash -lc
         run: sphinx-build -b html docs docs/_build/html
 
-      # 14. Build & Push da imagem Docker
+      # 15. Build & Push da imagem Docker
       - name: Build & Push Docker image
         shell: bash -lc
         run: |
