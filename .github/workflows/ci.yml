@@ -15,7 +15,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Cache dos pacotes Conda
+      # 2. Ativar Conda (garante que o ambiente esteja disponível)
+      - name: Activate Conda environment
+        shell: bash -lc
+        run: |
+          source "$HOME/miniconda3/etc/profile.d/conda.sh"
+          conda activate ogum
+
+      # 3. Cache dos pacotes Conda
       - name: Cache conda env
         uses: actions/cache@v4
         with:
@@ -24,7 +31,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-conda-
 
-      # 3. Criação do ambiente via mamba
+      # 4. Criação do ambiente via mamba
       - name: Set up Conda (mamba)
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -35,33 +42,26 @@ jobs:
           miniforge-variant: Miniforge3
           python-version: 3.11
 
-      # 4. Ativar Conda (agora que o ambiente já existe)
-      - name: Activate Conda environment
-        shell: bash -l {0}
-        run: |
-          source "$(conda info --base)/etc/profile.d/conda.sh"
-          conda activate ogum
-
       # 5. Instalar o pacote em modo editable
       - name: Install package
-        shell: bash -l {0}
+        shell: bash -lc
         run: pip install -e .
 
       # 6. Instalar dependências de desenvolvimento
       - name: Install dev dependencies
-        shell: bash -l {0}
+        shell: bash -lc
         run: pip install -r requirements-dev.txt
 
       # 7. Lint com Ruff
       - name: Lint (ruff)
-        shell: bash -l {0}
+        shell: bash -lc
         run: |
           ruff check --exit-zero src
           ruff format --check src || true
 
       # 8. Testes + cobertura
       - name: Run tests
-        shell: bash -l {0}
+        shell: bash -lc
         run: pytest --cov=ogum --cov-report=xml
 
       # 9. Envio da cobertura ao Codecov
@@ -70,7 +70,13 @@ jobs:
         with:
           files: coverage.xml
 
-      # 10. Configuração do GCP via chave JSON
+      # 10. Autenticar o workflow no GCP
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      # 11. Configuração do GCP via chave JSON (gcloud CLI)
       - name: Set up GCP SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
@@ -78,29 +84,17 @@ jobs:
           service_account_key: ${{ secrets.GCP_CREDENTIALS }}
           export_default_credentials: true
 
-      # 11. Autenticar Docker no Artifact Registry
+      # 12. Autenticar Docker no Artifact Registry
       - name: Configure Docker for Artifact Registry
-        shell: bash -l {0}
+        shell: bash -lc
         run: |
           gcloud auth configure-docker southamerica-east1-docker.pkg.dev --quiet
 
-      # 12. Instalar dependências de documentação
-      - name: Install documentation dependencies
-        shell: bash -l {0}
-        run: pip install sphinx sphinx-rtd-theme
-
-      # 13. Garantir que ~/.local/bin esteja no PATH
-      - name: Ensure PATH includes user bin
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-
-      # 14. Build da documentação com Sphinx
-      - name: Build docs
-        shell: bash -l {0}
-        run: sphinx-build -b html docs docs/_build/html
-
-      # 15. Build & Push da imagem Docker
+      # 13. Build & Push da imagem Docker
       - name: Build & Push Docker image
-        shell: bash -l {0}
+        shell: bash -lc
         run: |
-          docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
+          docker build \
+            -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest \
+            .
           docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
