@@ -21,6 +21,21 @@ def calculate_log_theta(
     Aceita tanto o nome **``energia_ativacao_kj``** (padrão interno) quanto
     os aliases usados nos testes/legacy – ``Ea_kJ`` ou ``Ea_kj`` – para fins
     de compatibilidade.
+
+    Parameters
+    ----------
+    df_ensaio : pd.DataFrame
+        Colunas obrigatórias: ``Time_s*``, ``Temperature_C*`` e
+        ``DensidadePct*`` (podem possuir sufixos).
+    energia_ativacao_kj : float, optional
+        Energia de ativação em kJ/mol.
+    **kwargs :
+        Permite receber ``Ea_kJ=`` ou ``Ea_kj=`` sem quebrar código existente.
+
+    Returns
+    -------
+    pd.DataFrame
+        Colunas ``logtheta``, ``valor`` e ``tempo_s``.
     """
     # ------------------------------------------------------------------#
     # Compatibilidade de nomes de argumento
@@ -49,11 +64,15 @@ def calculate_log_theta(
     # ------------------------------------------------------------------#
     # Cálculo do log‑theta
     # ------------------------------------------------------------------#
-    T_k = df_ensaio[temp_col].to_numpy(float) + 273.15
+    T_k = df_ensaio[temp_col].to_numpy(dtype=float) + 273.15
     Ea_j = energia_ativacao_kj * 1000.0
 
     theta_inst = (1.0 / T_k) * np.exp(-Ea_j / (R * T_k))
-    integrated = cumtrapz(theta_inst, df_ensaio[time_col].to_numpy(float), initial=0)
+    integrated = cumtrapz(
+        theta_inst,
+        df_ensaio[time_col].to_numpy(dtype=float),
+        initial=0,
+    )
 
     with np.errstate(divide="ignore", invalid="ignore"):
         safe_int = np.where(integrated == 0, np.finfo(float).tiny, integrated)
