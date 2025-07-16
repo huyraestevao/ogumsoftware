@@ -15,14 +15,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Ativar Conda
-      - name: Activate Conda environment
-        shell: bash -l {0}
-        run: |
-          source "$(conda info --base)/etc/profile.d/conda.sh"
-          conda activate ogum
-
-      # 3. Cache dos pacotes Conda
+      # 2. Cache dos pacotes Conda
       - name: Cache conda env
         uses: actions/cache@v4
         with:
@@ -31,7 +24,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-conda-
 
-      # 4. Criação do ambiente via mamba
+      # 3. Criação do ambiente via mamba
       - name: Set up Conda (mamba)
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -41,6 +34,13 @@ jobs:
           auto-update-conda: true
           miniforge-variant: Miniforge3
           python-version: 3.11
+
+      # 4. Ativar Conda (agora que o ambiente já existe)
+      - name: Activate Conda environment
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate ogum
 
       # 5. Instalar o pacote em modo editable
       - name: Install package
@@ -104,4 +104,3 @@ jobs:
         run: |
           docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
           docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
-
