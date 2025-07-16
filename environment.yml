@@ -34,13 +34,13 @@ dependencies:
 
   # 5. Dependências de Interface / Jupyter
   - ipywidgets           # requerido por ogum.core
+  - voila
   - sphinx
   - sphinx-rtd-theme
   
   # 6. Pacotes via Pip
   - pip:
       - fastapi
-      - voila
       - httpx
       - pydantic<2.0
       - pydantic-settings<2.0
