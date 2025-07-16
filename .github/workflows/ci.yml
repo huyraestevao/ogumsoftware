@@ -15,11 +15,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Ativar Conda (garante que o ambiente esteja disponível)
+      # 2. Ativar Conda
       - name: Activate Conda environment
         shell: bash -lc
         run: |
-          source "$HOME/miniconda3/etc/profile.d/conda.sh"
+          source "$(conda info --base)/etc/profile.d/conda.sh"
           conda activate ogum
 
       # 3. Cache dos pacotes Conda
@@ -87,8 +87,7 @@ jobs:
       # 12. Instalar dependências de documentação
       - name: Install documentation dependencies
         shell: bash -lc
-        run: |
-          pip install sphinx sphinx-rtd-theme
+        run: pip install sphinx sphinx-rtd-theme
 
       # 13. Garantir que ~/.local/bin esteja no PATH
       - name: Ensure PATH includes user bin
@@ -105,3 +104,4 @@ jobs:
         run: |
           docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
           docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
+
