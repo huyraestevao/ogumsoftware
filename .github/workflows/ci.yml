@@ -15,6 +15,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Activate Conda environment
+        shell: bash -lc
+        run: |
+          source "$HOME/miniconda3/etc/profile.d/conda.sh"
+          conda activate ogum
+
       # 2. Cache dos pacotes Conda -------------------------------------------------
       - name: Cache conda env
         uses: actions/cache@v4
