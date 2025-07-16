@@ -33,6 +33,8 @@ dependencies:
 
   # 5. Dependências de Interface / Jupyter
   - ipywidgets           # requerido por ogum.core
+  - sphinx
+  - sphinx-rtd-theme
   
   # 6. Pacotes via Pip
   - pip:
