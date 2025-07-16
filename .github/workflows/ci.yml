@@ -19,7 +19,7 @@ jobs:
       - name: Cache conda env
         uses: actions/cache@v4
         with:
-          path: ~/conda_pkgs_dir
+          path: ~/conda_pkgs_dir          # diretório de cache padrão do Miniconda
           key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
           restore-keys: |
             ${{ runner.os }}-conda-
@@ -33,7 +33,7 @@ jobs:
           use-mamba: true
           auto-update-conda: true
           miniforge-variant: Miniforge3
-          python-version: 3.11
+          python-version: 3.11           # coerente com environment.yml
 
       # 4. Instalação do pacote em modo editable -----------------------------------
       - name: Install package
@@ -66,23 +66,26 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # 9. Autenticar Docker no Artifact Registry --------------------------------
+      # 9. Autenticar Docker no Artifact Registry ----------------------------------
       - name: Authenticate Docker to Artifact Registry
         run: gcloud auth configure-docker southamerica-east1-docker.pkg.dev
 
-      # 10. Instalar dependências de documentação ---------------------------------
+      # 10. Instalar dependências de documentação ----------------------------------
       - name: Install documentation dependencies
         shell: bash -l {0}
         run: |
-          # usando pip dentro do ambiente Conda ativado
           pip install sphinx sphinx-rtd-theme
 
-      # 11. Build docs ------------------------------------------------------------
+      # 11. Garantir que ~/.local/bin esteja no PATH -------------------------------
+      - name: Ensure PATH includes user bin
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      # 12. Build docs -------------------------------------------------------------
       - name: Build docs
         shell: bash -l {0}
         run: sphinx-build -b html docs docs/_build/html
 
-      # 12. Build e push da imagem ------------------------------------------------
+      # 13. Build e push da imagem -------------------------------------------------
       - name: Build & Push Docker image
         run: |
           docker build -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest .
