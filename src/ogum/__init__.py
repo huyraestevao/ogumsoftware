@@ -23,6 +23,7 @@ from .core import (
 from .utils import normalize_columns, orlandini_araujo_filter, savgol_filter
 from .plotting import plot_sintering_curves
 from .processing import calculate_log_theta
+from .master_curve import build_master_curve
 from .material_calibrator import MaterialCalibrator
 from .stats import bootstrap_ea, shapiro_residuals, generate_report
 from .final_report import FinalReportModule
@@ -46,6 +47,7 @@ __all__ = [
     "orlandini_araujo_filter",
     "savgol_filter",
     "calculate_log_theta",
+    "build_master_curve",
     "MaterialCalibrator",
     "plot_sintering_curves",
     "bootstrap_ea",
