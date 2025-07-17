@@ -43,8 +43,10 @@ def bootstrap_ea(
     for i in range(n_bootstrap):
         idx = rng.integers(0, n, n)
         sample = [experiments[j] for j in idx]
-        ea, _ = MaterialCalibrator.fit(sample)
-        eas[i] = ea
+        combined = pd.concat(sample, ignore_index=True)
+        calib = MaterialCalibrator()
+        params = calib.fit(combined)
+        eas[i] = params["Ea"]
 
     ci_low, ci_high = np.percentile(eas, [2.5, 97.5])
     return float(ci_low), float(ci_high)
