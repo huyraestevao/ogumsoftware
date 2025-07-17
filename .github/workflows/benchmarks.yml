@@ -1,0 +1,77 @@
+name: FEM Benchmarks
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Conda (mamba)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: ogum
+          use-mamba: true
+          auto-update-conda: true
+          miniforge-variant: Miniforge3
+          python-version: 3.11
+
+      - name: Cache conda env
+        uses: actions/cache@v4
+        with:
+          path: ~/conda_pkgs_dir
+          key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-conda-
+
+      - name: Install package and dev deps
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate ogum
+          pip install -e .
+          pip install -r requirements-dev.txt
+          pip install pytest-benchmark
+
+      - name: Run FEM benchmarks
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate ogum
+          pytest --benchmark-only benchmarks/benchmark_fem.py
+
+      - name: Compare with baseline
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate ogum
+          python - <<'PY'
+import pandas as pd
+from pathlib import Path
+base = pd.read_csv('benchmarks/baseline.csv')
+curr = pd.read_csv('benchmarks/results.csv')
+merged = pd.merge(base, curr, on='n_elements', suffixes=('_base', '_curr'))
+merged['mesh_diff_pct'] = (merged['mesh_time_curr'] - merged['mesh_time_base']) / merged['mesh_time_base'] * 100.0
+merged['solve_diff_pct'] = (merged['solve_time_curr'] - merged['solve_time_base']) / merged['solve_time_base'] * 100.0
+report_path = Path('benchmarks/report.md')
+report_path.write_text(merged.to_markdown(index=False))
+regress = (merged['mesh_diff_pct'] > 5.0) | (merged['solve_diff_pct'] > 5.0)
+if regress.any():
+    print('Performance regression detected')
+    print(merged)
+    raise SystemExit(1)
+PY
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v3
+        with:
+          name: benchmark-report
+          path: benchmarks/report.md
+
