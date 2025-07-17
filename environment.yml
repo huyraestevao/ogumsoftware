@@ -10,6 +10,7 @@ dependencies:
   - python=3.11          # versão única
   - mamba
   - pip
+  - pyyaml=6.* 
 
   # 2. Framework de Simulação e Visualização
   - fenics-dolfinx           # suporta Python 3.11 :contentReference[oaicite:0]{index=0}
@@ -33,14 +34,13 @@ dependencies:
 
   # 5. Dependências de Interface / Jupyter
   - ipywidgets           # requerido por ogum.core
+  - voila
   - sphinx
   - sphinx-rtd-theme
   
   # 6. Pacotes via Pip
   - pip:
       - fastapi
-      - uvicorn[standard]
-      - voila
       - httpx
       - pydantic<2.0
       - pydantic-settings<2.0
