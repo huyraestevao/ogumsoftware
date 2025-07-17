@@ -4,43 +4,34 @@ import pandas as pd
 from ogum.material_calibrator import MaterialCalibrator
 
 
-def test_basic_instantiation():
-    df = pd.DataFrame(
-        {
-            "Time_s": np.linspace(0, 1, 5),
-            "Temperature_C": np.full(5, 1000.0),
-            "DensidadePct": np.linspace(0, 50, 5),
-        }
-    )
-    calib = MaterialCalibrator(df)
-    assert len(calib.experiments) == 1
+def _generate_data(ea: float, A: float, times: np.ndarray) -> pd.DataFrame:
+    temp = np.full_like(times, 1000.0)
+    dens = MaterialCalibrator._densification(times, temp, ea, A) * 100.0
+    return pd.DataFrame({
+        "Time_s": times,
+        "Temperature_C": temp,
+        "DensidadePct": dens,
+    })
 
 
-def test_fit_returns_parameters_close():
+def test_fit_converges_close():
     t = np.linspace(0, 10, 50)
     ea_true = 60.0
     a_true = 2.0
-    calib_tmp = MaterialCalibrator(pd.DataFrame())
-    df = calib_tmp.simulate_synthetic(ea_true, a_true, t)
-    est_ea, est_a = MaterialCalibrator.fit(df)
-    assert np.isclose(est_ea, ea_true, rtol=0.3)
-    assert np.isclose(est_a, a_true, rtol=0.3)
+    df = _generate_data(ea_true, a_true, t)
+    calib = MaterialCalibrator()
+    params = calib.fit(df)
+    assert np.isclose(params["Ea"], ea_true, rtol=0.05)
+    assert np.isclose(params["A"], a_true, rtol=0.05)
 
 
-def test_simulate_synthetic_structure():
-    t = np.linspace(0, 5, 10)
-    calib_tmp = MaterialCalibrator(pd.DataFrame())
-    df = calib_tmp.simulate_synthetic(40.0, 1.0, t)
-    assert list(df.columns) == ["Time_s", "Temperature_C", "DensidadePct"]
-    assert df["DensidadePct"].between(0, 100).all()
-    #assert (df["Temperature_C"] == df["Temperature_C"].iloc[0]).all()#
-
-
-def test_curve_master_analysis_columns():
-    t = np.linspace(0, 2, 10)
-    calib_tmp = MaterialCalibrator(pd.DataFrame())
-    df = calib_tmp.simulate_synthetic(50.0, 1.0, t)
-    calib = MaterialCalibrator(df)
-    result = calib.curve_master_analysis()
-    assert list(result.columns) == ["logtheta", "valor", "tempo_s"]
-    assert len(result) == len(df)
+def test_predict_matches_observed():
+    t = np.linspace(0, 8, 40)
+    ea_true = 45.0
+    a_true = 1.5
+    df = _generate_data(ea_true, a_true, t)
+    calib = MaterialCalibrator()
+    calib.fit(df)
+    pred = calib.predict(df)
+    assert "predicted_density" in pred.columns
+    assert np.allclose(pred["predicted_density"], df["DensidadePct"], rtol=1e-2)

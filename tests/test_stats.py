@@ -10,7 +10,7 @@ def test_bootstrap_ea_contains_true():
     t = np.linspace(0, 5, 20)
     ea_true = 60.0
     a_true = 2.0
-    calib = MaterialCalibrator(pd.DataFrame())
+    calib = MaterialCalibrator()
     experiments = []
     for _ in range(3):
         df = calib.simulate_synthetic(ea_true, a_true, t)
