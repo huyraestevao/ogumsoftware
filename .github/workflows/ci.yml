@@ -93,3 +93,35 @@ jobs:
             -t southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest \
             .
           docker push southamerica-east1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/ogum/ogumsoftware:latest
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Conda (mamba)
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          use-mamba: true
+          auto-update-conda: true
+
+      - name: Create environment
+        shell: bash -l {0}
+        run: |
+          mamba env create -f environment.yml
+          mamba activate ogum
+
+      - name: Install doc packages
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate ogum
+          mamba install sphinx nbsphinx sphinx-napoleon -y
+
+      - name: Build docs
+        shell: bash -l {0}
+        run: |
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate ogum
+          make -C docs docs
