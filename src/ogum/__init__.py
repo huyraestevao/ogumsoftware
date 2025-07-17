@@ -28,6 +28,7 @@ from .stats import bootstrap_ea, shapiro_residuals, generate_report
 from .final_report import FinalReportModule
 from .mesh_generator import generate_mesh
 from .mesh_generator_ui import MeshGeneratorUI
+from .data_refinement import DataRefinement
 
 __all__ = [
     "R",
@@ -53,4 +54,5 @@ __all__ = [
     "FinalReportModule",
     "generate_mesh",
     "MeshGeneratorUI",
+    "DataRefinement",
 ]
